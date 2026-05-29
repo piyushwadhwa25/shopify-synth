@@ -1,0 +1,181 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  parsePaste,
+  type ParseResult,
+} from "../lib/parser/index";
+import type { GlobalPeriod } from "../lib/core/segments";
+import { ParseErrors } from "./ParseErrors";
+
+/** Full column header row for copy-to-clipboard and preset rows. */
+export const PASTE_HEADER =
+  "start_date,end_date,orders_per_day_mean,orders_per_day_std,new_customer_rate,repeat_purchase_probability,cod_rate,cod_rto_rate,prepaid_refund_rate,discount_rate,discount_amount_mean,aov_mean,aov_std,weekend_multiplier,evening_concentration";
+
+/** Props for {@link PasteArea}. */
+export interface PasteAreaProps {
+  globalPeriod: GlobalPeriod;
+  onParsed: (result: ParseResult) => void;
+  /** When set, replaces textarea content (e.g. scenario preset load). */
+  presetRaw?: string;
+}
+
+/**
+ * CSV paste textarea with manual and debounced auto-parse,
+ * clipboard header copy, and inline validation feedback.
+ */
+export function PasteArea({
+  globalPeriod,
+  onParsed,
+  presetRaw,
+}: PasteAreaProps) {
+  const [raw, setRaw] = useState("");
+  const [result, setResult] = useState<ParseResult | null>(null);
+  const [copyLabel, setCopyLabel] = useState("Copy header");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const runParse = useCallback(
+    (text: string) => {
+      const parsed = parsePaste(text, globalPeriod);
+      setResult(parsed);
+      onParsed(parsed);
+      return parsed;
+    },
+    [globalPeriod, onParsed],
+  );
+
+  const scheduleParse = useCallback(
+    (text: string) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        runParse(text);
+      }, 100);
+    },
+    [runParse],
+  );
+
+  useEffect(() => {
+    if (presetRaw !== undefined) {
+      setRaw(presetRaw);
+    }
+  }, [presetRaw]);
+
+  useEffect(() => {
+    if (!raw.trim()) {
+      setResult(null);
+      return () => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+        }
+      };
+    }
+    scheduleParse(raw);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [raw, globalPeriod, scheduleParse]);
+
+  const handleCopyHeader = async () => {
+    try {
+      await navigator.clipboard.writeText(PASTE_HEADER);
+      setCopyLabel("Copied!");
+      setTimeout(() => setCopyLabel("Copy header"), 2000);
+    } catch {
+      setCopyLabel("Copy failed");
+      setTimeout(() => setCopyLabel("Copy header"), 2000);
+    }
+  };
+
+  const handleParseClick = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    if (!raw.trim()) {
+      setResult(null);
+      return;
+    }
+    runParse(raw);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget;
+    window.setTimeout(() => {
+      scheduleParse(textarea.value);
+    }, 0);
+  };
+
+  const isValid = result !== null && result.errors.length === 0 && raw.trim() !== "";
+  const coverage =
+    isValid && result.segments.length > 0
+      ? {
+          start: result.segments.reduce(
+            (min, s) => (s.start_date < min ? s.start_date : min),
+            result.segments[0].start_date,
+          ),
+          end: result.segments.reduce(
+            (max, s) => (s.end_date > max ? s.end_date : max),
+            result.segments[0].end_date,
+          ),
+        }
+      : null;
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-900">
+            Paste segment timeline
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-zinc-600">
+            One row per time window. Header row required. Columns: start_date,
+            end_date, then any params you want to override. Use a row with
+            start_date=global to set the generation period.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleCopyHeader}
+          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+        >
+          {copyLabel}
+        </button>
+      </div>
+
+      <textarea
+        value={raw}
+        onChange={(e) => setRaw(e.target.value)}
+        onPaste={handlePaste}
+        rows={8}
+        className="w-full min-h-[8rem] rounded-md border border-zinc-300 px-3 py-2 font-mono text-sm text-zinc-900"
+        placeholder={PASTE_HEADER}
+        spellCheck={false}
+      />
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleParseClick}
+          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          Parse
+        </button>
+      </div>
+
+      {result && (result.errors.length > 0 || result.warnings.length > 0) && (
+        <ParseErrors errors={result.errors} warnings={result.warnings} />
+      )}
+
+      {isValid && coverage && (
+        <p className="text-sm font-medium text-green-700" role="status">
+          {result.segments.length} segment
+          {result.segments.length === 1 ? "" : "s"} parsed. Covering{" "}
+          {coverage.start} to {coverage.end}.
+        </p>
+      )}
+    </section>
+  );
+}
