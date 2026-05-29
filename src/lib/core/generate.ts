@@ -315,6 +315,12 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         totalPrice = Math.max(0, subtotal - discountAmount);
       }
 
+      if (totalPrice > trended.aovMean * 1.5 && lineItems.length > 1) {
+        lineItems = dropMostExpensiveLineItem(lineItems);
+        subtotal = sumLineItems(lineItems);
+        totalPrice = Math.max(0, subtotal - discountAmount);
+      }
+
       applyDiscountToLineItems(lineItems, discountAmount);
 
       // Payment path: COD with optional RTO, or weighted prepaid gateways.
@@ -753,12 +759,13 @@ function buildLineItems(
   return picks.map((entry, index) => {
     const variant = pickOne(rng, entry.product.variants);
     const quantity = nextBool(rng, 0.15) ? 2 : 1;
-    const basePrice = parseFloat(variant.price);
+    const priceMean = entry.catalog.price_mean;
     const unitPrice = nextNormal(
       rng,
-      basePrice,
-      entry.catalog.price_std * 0.1,
-      1,
+      priceMean,
+      priceMean * 0.08,
+      priceMean * 0.5,
+      priceMean * 1.5,
     );
 
     return {
@@ -772,6 +779,28 @@ function buildLineItems(
       total_discount: "0.00",
     };
   });
+}
+
+/** Removes the highest extended-price line item (keeps the sole item if only one). */
+function dropMostExpensiveLineItem(
+  lineItems: ShopifyLineItem[],
+): ShopifyLineItem[] {
+  if (lineItems.length <= 1) {
+    return lineItems;
+  }
+
+  let dropIndex = 0;
+  let maxExtended = 0;
+  for (let i = 0; i < lineItems.length; i++) {
+    const extended =
+      parseFloat(lineItems[i].price) * lineItems[i].quantity;
+    if (extended > maxExtended) {
+      maxExtended = extended;
+      dropIndex = i;
+    }
+  }
+
+  return lineItems.filter((_, i) => i !== dropIndex);
 }
 
 /** Sums line item extended prices (price × quantity). */
