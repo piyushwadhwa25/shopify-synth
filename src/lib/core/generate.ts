@@ -259,6 +259,34 @@ export function generate(input: GeneratorInput): GeneratorOutput {
 
     const timestamps = generateDayTimestamps(date, orderCount, params, rng);
 
+    const dayCodRate = applyTrendClamped(
+      dayIndex,
+      totalDays,
+      params.cod_rate,
+      params.trend,
+      rng,
+      0,
+      1,
+    );
+    const dayDiscountRate = applyTrendClamped(
+      dayIndex,
+      totalDays,
+      params.discount_rate,
+      params.trend,
+      rng,
+      0,
+      1,
+    );
+    const dayRefundRate = applyTrendClamped(
+      dayIndex,
+      totalDays,
+      params.prepaid_refund_rate,
+      params.trend,
+      rng,
+      0,
+      1,
+    );
+
     for (const createdAt of timestamps) {
       const city = pickCity(rng, geoDistribution);
 
@@ -283,27 +311,33 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         rng,
       );
 
-      // Resample line items until subtotal is within 25% above target AOV.
+      // Resample line items until subtotal is within 15% above target AOV.
       let lineItems = buildLineItems(
         inflatedCatalog,
         rng,
         nextLineItemId,
+        trended.aovMean,
       );
       nextLineItemId += lineItems.length;
 
       let attempts = 0;
       while (
-        sumLineItems(lineItems) > trended.aovMean * 1.25 &&
+        sumLineItems(lineItems) > trended.aovMean * 1.15 &&
         attempts < 5
       ) {
-        lineItems = buildLineItems(inflatedCatalog, rng, nextLineItemId);
+        lineItems = buildLineItems(
+          inflatedCatalog,
+          rng,
+          nextLineItemId,
+          trended.aovMean,
+        );
         nextLineItemId += lineItems.length;
         attempts += 1;
       }
 
       const subtotal = sumLineItems(lineItems);
       let discountAmount = 0;
-      const hasDiscount = nextBool(rng, trended.discountRate);
+      const hasDiscount = nextBool(rng, dayDiscountRate);
       if (hasDiscount) {
         discountAmount = nextNormal(
           rng,
@@ -319,7 +353,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       applyDiscountToLineItems(lineItems, discountAmount);
 
       // Payment path: COD with optional RTO, or weighted prepaid gateways.
-      const isCOD = nextBool(rng, trended.codRate);
+      const isCOD = nextBool(rng, dayCodRate);
       let financialStatus: ShopifyOrder["financial_status"] = "paid";
       let fulfillmentStatus: ShopifyOrder["fulfillment_status"] = "fulfilled";
       let gateway: ShopifyOrder["gateway"] = "cash_on_delivery";
@@ -330,7 +364,8 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         gateway = "cash_on_delivery";
         financialStatus = "pending";
 
-        if (nextBool(rng, trended.codRtoRate)) {
+        const isRTO = nextBool(rng, trended.codRtoRate);
+        if (isRTO) {
           // RTO: order returned undelivered — tag for downstream eval scenarios.
           fulfillmentStatus = "restocked";
           tags = "rto,cod";
@@ -360,7 +395,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
           PREPAID_GATEWAY_WEIGHTS,
         );
 
-        if (nextBool(rng, trended.prepaidRefundRate)) {
+        if (nextBool(rng, dayRefundRate)) {
           financialStatus = "refunded";
           fulfillmentStatus = "restocked";
         } else {
@@ -715,11 +750,15 @@ function buildCollections(
 function pickCatalogEntries(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
+  aovMean: number,
 ): InflatedCatalogEntry[] {
   const maxItems = Math.min(3, inflatedCatalog.length);
   const countOptions = [1, 2, 3].filter((n) => n <= maxItems);
   const countWeights = [0.7, 0.22, 0.08].slice(0, countOptions.length);
-  const itemCount = pickWeighted(rng, countOptions, countWeights);
+  const itemCount =
+    aovMean > 2000
+      ? 1
+      : pickWeighted(rng, countOptions, countWeights);
   const available = [...inflatedCatalog];
   const selected: InflatedCatalogEntry[] = [];
 
@@ -744,12 +783,13 @@ function buildLineItems(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
   startingLineItemId: number,
+  aovMean: number,
 ): ShopifyLineItem[] {
   if (inflatedCatalog.length === 0) {
     return [];
   }
 
-  const picks = pickCatalogEntries(inflatedCatalog, rng);
+  const picks = pickCatalogEntries(inflatedCatalog, rng, aovMean);
 
   return picks.map((entry, index) => {
     const variant = pickOne(rng, entry.product.variants);

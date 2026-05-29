@@ -70,12 +70,9 @@ export function getDayOrderCount(
   const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  let adjustedMean = isWeekend
-    ? Math.round(baseMean * params.weekend_multiplier)
-    : baseMean;
-
-  const festivalMultiplier = getFestivalMultiplier(date, spikes);
-  adjustedMean = Math.round(adjustedMean * festivalMultiplier);
+  let adjustedMean =
+    baseMean * (isWeekend ? params.weekend_multiplier : 1.0);
+  adjustedMean *= getFestivalMultiplier(date, spikes);
 
   if (adjustedMean <= 0) {
     return 0;
@@ -83,8 +80,8 @@ export function getDayOrderCount(
 
   return nextInt(
     rng,
-    Math.max(1, Math.round(adjustedMean * 0.85)),
-    Math.round(adjustedMean * 1.15),
+    Math.max(1, Math.round(adjustedMean * 0.9)),
+    Math.round(adjustedMean * 1.1),
   );
 }
 
