@@ -1,0 +1,24 @@
+{
+  "scenario": "SlumberCo",
+  "store_id": "slumberco-sleep",
+  "params": {
+    "orders_per_day_mean": 4,
+    "orders_per_day_std": 2,
+    "new_customer_rate": 0.55,
+    "repeat_purchase_probability": 0.25,
+    "cod_rate": 0.2,
+    "cod_rto_rate": 0.05,
+    "prepaid_refund_rate": 0.04,
+    "discount_rate": 0.08,
+    "discount_amount_mean": 800,
+    "aov_mean": 4999,
+    "aov_std": 1200,
+    "weekend_multiplier": 1.6,
+    "evening_concentration": 0.45,
+    "trend": {
+      "mode": "flat",
+      "strength": 0,
+      "noise_std": 1
+    }
+  }
+}

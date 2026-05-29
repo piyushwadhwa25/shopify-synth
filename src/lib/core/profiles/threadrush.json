@@ -1,0 +1,24 @@
+{
+  "scenario": "ThreadRush",
+  "store_id": "threadrush-fashion",
+  "params": {
+    "orders_per_day_mean": 55,
+    "orders_per_day_std": 18,
+    "new_customer_rate": 0.72,
+    "repeat_purchase_probability": 0.22,
+    "cod_rate": 0.4,
+    "cod_rto_rate": 0.14,
+    "prepaid_refund_rate": 0.04,
+    "discount_rate": 0.45,
+    "discount_amount_mean": 180,
+    "aov_mean": 549,
+    "aov_std": 180,
+    "weekend_multiplier": 2.1,
+    "evening_concentration": 0.65,
+    "trend": {
+      "mode": "flat",
+      "strength": 0,
+      "noise_std": 10
+    }
+  }
+}

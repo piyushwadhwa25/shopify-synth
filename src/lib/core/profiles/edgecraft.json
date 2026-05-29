@@ -1,0 +1,24 @@
+{
+  "scenario": "EdgeCraft",
+  "store_id": "edgecraft-grooming",
+  "params": {
+    "orders_per_day_mean": 35,
+    "orders_per_day_std": 10,
+    "new_customer_rate": 0.55,
+    "repeat_purchase_probability": 0.2,
+    "cod_rate": 0.35,
+    "cod_rto_rate": 0.16,
+    "prepaid_refund_rate": 0.09,
+    "discount_rate": 0.2,
+    "discount_amount_mean": 150,
+    "aov_mean": 799,
+    "aov_std": 200,
+    "weekend_multiplier": 1.4,
+    "evening_concentration": 0.5,
+    "trend": {
+      "mode": "declining",
+      "strength": 0.5,
+      "noise_std": 6
+    }
+  }
+}

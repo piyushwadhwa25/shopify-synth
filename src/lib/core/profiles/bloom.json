@@ -1,0 +1,24 @@
+{
+  "scenario": "Bloom",
+  "store_id": "bloom-wellness",
+  "params": {
+    "orders_per_day_mean": 18,
+    "orders_per_day_std": 4,
+    "new_customer_rate": 0.35,
+    "repeat_purchase_probability": 0.65,
+    "cod_rate": 0.15,
+    "cod_rto_rate": 0.06,
+    "prepaid_refund_rate": 0.02,
+    "discount_rate": 0.12,
+    "discount_amount_mean": 120,
+    "aov_mean": 849,
+    "aov_std": 150,
+    "weekend_multiplier": 1.2,
+    "evening_concentration": 0.55,
+    "trend": {
+      "mode": "flat",
+      "strength": 0,
+      "noise_std": 2
+    }
+  }
+}

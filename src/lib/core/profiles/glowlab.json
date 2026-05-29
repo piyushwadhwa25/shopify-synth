@@ -1,0 +1,25 @@
+{
+  "scenario": "GlowLab",
+  "store_id": "glowlab-beauty",
+  "params": {
+    "orders_per_day_mean": 35,
+    "orders_per_day_std": 8,
+    "new_customer_rate": 0.88,
+    "repeat_purchase_probability": 0.08,
+    "cod_rate": 0.25,
+    "cod_rto_rate": 0.08,
+    "prepaid_refund_rate": 0.03,
+    "discount_rate": 0.15,
+    "discount_amount_mean": 200,
+    "aov_mean": 1149,
+    "aov_std": 250,
+    "weekend_multiplier": 2.4,
+    "evening_concentration": 0.7,
+    "trend": {
+      "mode": "launch_ramp",
+      "strength": 1,
+      "ramp_days": 120,
+      "noise_std": 5
+    }
+  }
+}

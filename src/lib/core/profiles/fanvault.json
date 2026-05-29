@@ -1,0 +1,24 @@
+{
+  "scenario": "FanVault",
+  "store_id": "fanvault-licensed",
+  "params": {
+    "orders_per_day_mean": 40,
+    "orders_per_day_std": 12,
+    "new_customer_rate": 0.6,
+    "repeat_purchase_probability": 0.3,
+    "cod_rate": 0.65,
+    "cod_rto_rate": 0.22,
+    "prepaid_refund_rate": 0.03,
+    "discount_rate": 0.2,
+    "discount_amount_mean": 100,
+    "aov_mean": 699,
+    "aov_std": 160,
+    "weekend_multiplier": 1.8,
+    "evening_concentration": 0.6,
+    "trend": {
+      "mode": "flat",
+      "strength": 0,
+      "noise_std": 8
+    }
+  }
+}
