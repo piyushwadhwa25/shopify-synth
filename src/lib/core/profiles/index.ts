@@ -1,10 +1,10 @@
-import type { BaseProfile } from "../segments";
-import bloomJson from "./bloom.json";
-import threadrushJson from "./threadrush.json";
-import fanvaultJson from "./fanvault.json";
-import glowlabJson from "./glowlab.json";
-import edgecraftJson from "./edgecraft.json";
-import slumbercoJson from "./slumberco.json";
+import type { BaseProfile } from "../segments.js";
+import bloomJson from "./bloom.json" with { type: "json" };
+import threadrushJson from "./threadrush.json" with { type: "json" };
+import fanvaultJson from "./fanvault.json" with { type: "json" };
+import glowlabJson from "./glowlab.json" with { type: "json" };
+import edgecraftJson from "./edgecraft.json" with { type: "json" };
+import slumbercoJson from "./slumberco.json" with { type: "json" };
 
 const bloom = bloomJson as BaseProfile;
 const threadrush = threadrushJson as BaseProfile;

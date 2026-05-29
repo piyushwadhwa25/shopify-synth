@@ -1,9 +1,9 @@
-import { generate } from "../src/lib/core/generate";
-import type { GeneratorInput } from "../src/lib/core/generate";
-import { getScenarioCatalog } from "../src/lib/core/catalogs";
-import { parsePaste } from "../src/lib/parser/index";
-import { PROFILES } from "../src/lib/core/profiles/index";
-import type { FestivalSpike } from "../src/lib/core/timestamps";
+import { generate } from "../src/lib/core/generate.js";
+import type { GeneratorInput } from "../src/lib/core/generate.js";
+import { getScenarioCatalog } from "../src/lib/core/catalogs.js";
+import { parsePaste } from "../src/lib/parser/index.js";
+import { PROFILES } from "../src/lib/core/profiles/index.js";
+import type { FestivalSpike } from "../src/lib/core/timestamps.js";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -89,10 +89,6 @@ Examples:
   npx ts-node scripts/cli.ts --profile bloom --output ./output/bloom.json
   npx ts-node scripts/cli.ts --config ./my-config.json --output ./output/custom.json
   npm run generate -- --profile bloom --output ./bloom.json
-
-Note (if ts-node fails to resolve modules):
-  PowerShell: $env:TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS"}'
-  Bash:       export TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS"}'
 `);
 }
 

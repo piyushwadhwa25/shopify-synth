@@ -1,5 +1,5 @@
-import { nextInt, type RNGState } from "./rng";
-import type { ResolvedParams } from "./segments";
+import { nextInt, type RNGState } from "./rng.js";
+import type { ResolvedParams } from "./segments.js";
 
 /** Festival or sale window that multiplies daily order volume. */
 export interface FestivalSpike {
