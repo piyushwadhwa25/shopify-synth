@@ -67,12 +67,12 @@ export function getDayOrderCount(
   spikes: FestivalSpike[],
   rng: RNGState,
 ): number {
-  const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-  let adjustedMean =
-    baseMean * (isWeekend ? params.weekend_multiplier : 1.0);
-  adjustedMean *= getFestivalMultiplier(date, spikes);
+  const isWeekend = [0, 6].includes(new Date(date).getDay());
+  const weekendFactor = isWeekend ? params.weekend_multiplier : 1.0;
+  const festivalFactor = getFestivalMultiplier(date, spikes);
+  const adjustedMean = Math.round(
+    baseMean * weekendFactor * festivalFactor,
+  );
 
   if (adjustedMean <= 0) {
     return 0;

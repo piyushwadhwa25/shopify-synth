@@ -248,11 +248,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
     const orderCount = getDayOrderCount(
       date,
       trended.ordersPerDayMean,
-      {
-        ...params,
-        weekend_multiplier: trended.weekendMultiplier,
-        evening_concentration: trended.eveningConcentration,
-      },
+      params,
       spikes,
       rng,
     );
@@ -321,20 +317,20 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         inflatedCatalog,
         rng,
         nextLineItemId,
-        trended.aovMean,
+        params,
       );
       nextLineItemId += lineItems.length;
 
       let attempts = 0;
       while (
-        sumLineItems(lineItems) > trended.aovMean * 1.15 &&
+        sumLineItems(lineItems) > params.aov_mean * 1.15 &&
         attempts < 5
       ) {
         lineItems = buildLineItems(
           inflatedCatalog,
           rng,
           nextLineItemId,
-          trended.aovMean,
+          params,
         );
         nextLineItemId += lineItems.length;
         attempts += 1;
@@ -400,7 +396,8 @@ export function generate(input: GeneratorInput): GeneratorOutput {
           PREPAID_GATEWAY_WEIGHTS,
         );
 
-        if (nextBool(rng, dayRefundRate)) {
+        const isRefund = nextBool(rng, dayRefundRate);
+        if (isRefund) {
           financialStatus = "refunded";
           fulfillmentStatus = "restocked";
         } else {
@@ -755,19 +752,20 @@ function buildCollections(
 function pickCatalogEntries(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
-  aovMean: number,
+  params: ResolvedParams,
 ): InflatedCatalogEntry[] {
-  const maxItems = Math.min(3, inflatedCatalog.length);
-  const countOptions = [1, 2, 3].filter((n) => n <= maxItems);
+  const countOptions = [1, 2, 3].filter((n) => n <= inflatedCatalog.length);
   const countWeights = [0.7, 0.22, 0.08].slice(0, countOptions.length);
   const itemCount =
-    aovMean > 2000
+    params.aov_mean > 2000
       ? 1
       : pickWeighted(rng, countOptions, countWeights);
+
+  const maxItems = Math.min(itemCount, inflatedCatalog.length);
   const available = [...inflatedCatalog];
   const selected: InflatedCatalogEntry[] = [];
 
-  for (let i = 0; i < itemCount && available.length > 0; i++) {
+  for (let i = 0; i < maxItems && available.length > 0; i++) {
     const weights = available.map((entry) =>
       entry.catalog.is_dead ? 0.001 : entry.catalog.revenue_share,
     );
@@ -788,25 +786,29 @@ function buildLineItems(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
   startingLineItemId: number,
-  aovMean: number,
+  params: ResolvedParams,
 ): ShopifyLineItem[] {
   if (inflatedCatalog.length === 0) {
     return [];
   }
 
-  const picks = pickCatalogEntries(inflatedCatalog, rng, aovMean);
+  const picks = pickCatalogEntries(inflatedCatalog, rng, params);
+  const maxUnitPrice = params.aov_mean * 0.9;
 
   return picks.map((entry, index) => {
     const variant = pickOne(rng, entry.product.variants);
     const quantity = nextBool(rng, 0.15) ? 2 : 1;
     const priceMean = entry.catalog.price_mean;
-    const unitPrice = nextNormal(
+    let unitPrice = nextNormal(
       rng,
       priceMean,
       priceMean * 0.08,
       priceMean * 0.5,
       priceMean * 1.5,
     );
+    if (unitPrice > maxUnitPrice) {
+      unitPrice = maxUnitPrice;
+    }
 
     return {
       id: startingLineItemId + index,
