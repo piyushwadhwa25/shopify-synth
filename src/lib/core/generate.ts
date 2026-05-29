@@ -7,7 +7,12 @@ import {
   pickWeighted,
   type RNGState,
 } from "./rng.js";
-import { applyTrend, applyTrendInt, applyTrendClamped } from "./trend.js";
+import {
+  applyTrend,
+  applyTrendInt,
+  applyTrendClamped,
+  type TrendConfig,
+} from "./trend.js";
 import {
   buildDayMap,
   type BaseProfile,
@@ -288,7 +293,8 @@ export function generate(input: GeneratorInput): GeneratorOutput {
 
       let subtotal = sumLineItems(lineItems);
       let discountAmount = 0;
-      if (nextBool(rng, trended.discountRate)) {
+      const hasDiscount = nextBool(rng, trended.discountRate);
+      if (hasDiscount) {
         discountAmount = nextNormal(
           rng,
           trended.discountAmountMean,
@@ -312,14 +318,14 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       applyDiscountToLineItems(lineItems, discountAmount);
 
       // Payment path: COD with optional RTO, or weighted prepaid gateways.
-      const isCod = nextBool(rng, trended.codRate);
+      const isCOD = nextBool(rng, trended.codRate);
       let financialStatus: ShopifyOrder["financial_status"] = "paid";
       let fulfillmentStatus: ShopifyOrder["fulfillment_status"] = "fulfilled";
       let gateway: ShopifyOrder["gateway"] = "cash_on_delivery";
       let tags = "";
       let fulfillments: ShopifyFulfillment[] = [];
 
-      if (isCod) {
+      if (isCOD) {
         gateway = "cash_on_delivery";
         financialStatus = "pending";
 
@@ -473,6 +479,9 @@ function buildTrendedDayParams(
   rng: RNGState,
 ): TrendedDayParams {
   const trend = params.trend;
+  // noise_std is for order-volume jitter only — not applied to [0, 1] rate fields.
+  const rateTrend: TrendConfig = { ...trend, noise_std: undefined };
+
   return {
     ordersPerDayMean: applyTrendInt(
       dayIndex,
@@ -485,7 +494,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.new_customer_rate,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -494,7 +503,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.cod_rate,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -503,7 +512,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.cod_rto_rate,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -512,7 +521,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.prepaid_refund_rate,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -521,7 +530,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.discount_rate,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -539,7 +548,7 @@ function buildTrendedDayParams(
       dayIndex,
       totalDays,
       params.evening_concentration,
-      trend,
+      rateTrend,
       rng,
       0,
       1,
@@ -706,7 +715,10 @@ function pickCatalogEntries(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
 ): InflatedCatalogEntry[] {
-  const itemCount = nextInt(rng, 1, Math.min(3, inflatedCatalog.length));
+  const maxItems = Math.min(3, inflatedCatalog.length);
+  const countOptions = [1, 2, 3].filter((n) => n <= maxItems);
+  const countWeights = [0.7, 0.22, 0.08].slice(0, countOptions.length);
+  const itemCount = pickWeighted(rng, countOptions, countWeights);
   const available = [...inflatedCatalog];
   const selected: InflatedCatalogEntry[] = [];
 
