@@ -46,6 +46,23 @@ export type ShopifyProduct = {
   tags: string;
 };
 
+/** Collection resource from the Shopify Admin API. */
+export type ShopifyCollection = {
+  id: number;
+  title: string;
+  collection_type: "custom" | "smart";
+  products_count: number;
+  created_at: string;
+  published_at: string | null;
+};
+
+/** Join record linking a product to a collection with sort position. */
+export type ShopifyCollectionProduct = {
+  collection_id: number;
+  product_id: number;
+  position: number;
+};
+
 /** Line item on an order from the Shopify Admin API. */
 export type ShopifyLineItem = {
   id: number;
@@ -113,4 +130,6 @@ export type GeneratorOutput = {
   orders: ShopifyOrder[];
   customers: ShopifyCustomer[];
   products: ShopifyProduct[];
+  collections: ShopifyCollection[];
+  collection_products: ShopifyCollectionProduct[];
 };
