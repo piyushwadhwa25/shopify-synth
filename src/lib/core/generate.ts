@@ -315,7 +315,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         totalPrice = Math.max(0, subtotal - discountAmount);
       }
 
-      if (totalPrice > trended.aovMean * 1.5 && lineItems.length > 1) {
+      if (totalPrice > trended.aovMean * 1.2 && lineItems.length > 1) {
         lineItems = dropMostExpensiveLineItem(lineItems);
         subtotal = sumLineItems(lineItems);
         totalPrice = Math.max(0, subtotal - discountAmount);
