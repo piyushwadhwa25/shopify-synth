@@ -259,11 +259,16 @@ export function generate(input: GeneratorInput): GeneratorOutput {
 
     const timestamps = generateDayTimestamps(date, orderCount, params, rng);
 
+    // Rates use trend direction only — no noise_std.
+    // Noise on probability thresholds causes per-order jitter
+    // that inflates rates far above profile values.
+    const rateTrendConfig = { ...params.trend, noise_std: 0 };
+
     const dayCodRate = applyTrendClamped(
       dayIndex,
       totalDays,
       params.cod_rate,
-      params.trend,
+      rateTrendConfig,
       rng,
       0,
       1,
@@ -272,7 +277,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       dayIndex,
       totalDays,
       params.discount_rate,
-      params.trend,
+      rateTrendConfig,
       rng,
       0,
       1,
@@ -281,7 +286,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       dayIndex,
       totalDays,
       params.prepaid_refund_rate,
-      params.trend,
+      rateTrendConfig,
       rng,
       0,
       1,
