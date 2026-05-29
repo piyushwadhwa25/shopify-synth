@@ -283,7 +283,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         rng,
       );
 
-      // Build line items with optional single retry when AOV is far from target.
+      // Resample line items until subtotal is within 25% above target AOV.
       let lineItems = buildLineItems(
         inflatedCatalog,
         rng,
@@ -291,7 +291,17 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       );
       nextLineItemId += lineItems.length;
 
-      let subtotal = sumLineItems(lineItems);
+      let attempts = 0;
+      while (
+        sumLineItems(lineItems) > trended.aovMean * 1.25 &&
+        attempts < 5
+      ) {
+        lineItems = buildLineItems(inflatedCatalog, rng, nextLineItemId);
+        nextLineItemId += lineItems.length;
+        attempts += 1;
+      }
+
+      const subtotal = sumLineItems(lineItems);
       let discountAmount = 0;
       const hasDiscount = nextBool(rng, trended.discountRate);
       if (hasDiscount) {
@@ -304,22 +314,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         );
       }
 
-      let totalPrice = Math.max(0, subtotal - discountAmount);
-      if (
-        Math.abs(totalPrice - trended.aovMean) >
-        trended.aovStd * 3
-      ) {
-        lineItems = buildLineItems(inflatedCatalog, rng, nextLineItemId);
-        nextLineItemId += lineItems.length;
-        subtotal = sumLineItems(lineItems);
-        totalPrice = Math.max(0, subtotal - discountAmount);
-      }
-
-      if (totalPrice > trended.aovMean * 1.2 && lineItems.length > 1) {
-        lineItems = dropMostExpensiveLineItem(lineItems);
-        subtotal = sumLineItems(lineItems);
-        totalPrice = Math.max(0, subtotal - discountAmount);
-      }
+      const totalPrice = Math.max(0, subtotal - discountAmount);
 
       applyDiscountToLineItems(lineItems, discountAmount);
 
@@ -779,28 +774,6 @@ function buildLineItems(
       total_discount: "0.00",
     };
   });
-}
-
-/** Removes the highest extended-price line item (keeps the sole item if only one). */
-function dropMostExpensiveLineItem(
-  lineItems: ShopifyLineItem[],
-): ShopifyLineItem[] {
-  if (lineItems.length <= 1) {
-    return lineItems;
-  }
-
-  let dropIndex = 0;
-  let maxExtended = 0;
-  for (let i = 0; i < lineItems.length; i++) {
-    const extended =
-      parseFloat(lineItems[i].price) * lineItems[i].quantity;
-    if (extended > maxExtended) {
-      maxExtended = extended;
-      dropIndex = i;
-    }
-  }
-
-  return lineItems.filter((_, i) => i !== dropIndex);
 }
 
 /** Sums line item extended prices (price × quantity). */

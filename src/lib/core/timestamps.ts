@@ -67,28 +67,25 @@ export function getDayOrderCount(
   spikes: FestivalSpike[],
   rng: RNGState,
 ): number {
-  // UTC day-of-week so ISO dates are not shifted by local timezone.
-  const dayOfWeek = new Date(`${date}T12:00:00.000Z`).getUTCDay();
+  const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  // 1. Weekend scaling on the mean (before jitter).
-  let adjustedMean =
-    baseMean * (isWeekend ? params.weekend_multiplier : 1.0);
+  let adjustedMean = isWeekend
+    ? Math.round(baseMean * params.weekend_multiplier)
+    : baseMean;
 
-  // 2. Festival scaling on the adjusted mean (still before jitter).
-  adjustedMean *= getFestivalMultiplier(date, spikes);
+  const festivalMultiplier = getFestivalMultiplier(date, spikes);
+  adjustedMean = Math.round(adjustedMean * festivalMultiplier);
 
   if (adjustedMean <= 0) {
     return 0;
   }
 
-  // 3. Jitter the scaled mean — not the raw baseMean.
-  const count = nextInt(
+  return nextInt(
     rng,
-    adjustedMean * 0.7,
-    adjustedMean * 1.3,
+    Math.max(1, Math.round(adjustedMean * 0.85)),
+    Math.round(adjustedMean * 1.15),
   );
-  return Math.max(0, count);
 }
 
 /** Converts seconds since midnight into hour, minute, and second components. */
