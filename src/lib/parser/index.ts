@@ -1,5 +1,5 @@
-import type { Segment, GlobalPeriod, SegmentParams } from "../core/segments.js";
-import { validateSegments } from "../core/segments.js";
+import type { Segment, GlobalPeriod, SegmentParams } from "../core/segments";
+import { validateSegments } from "../core/segments";
 
 /** Maximum parse errors collected before stopping and appending a summary message. */
 const MAX_ERRORS = 10;

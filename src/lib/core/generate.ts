@@ -6,25 +6,25 @@ import {
   pickOne,
   pickWeighted,
   type RNGState,
-} from "./rng.js";
+} from "./rng";
 import {
   applyTrend,
   applyTrendInt,
   applyTrendClamped,
   type TrendConfig,
-} from "./trend.js";
+} from "./trend";
 import {
   buildDayMap,
   type BaseProfile,
   type Segment,
   type GlobalPeriod,
   type ResolvedParams,
-} from "./segments.js";
+} from "./segments";
 import {
   getDayOrderCount,
   generateDayTimestamps,
   type FestivalSpike,
-} from "./timestamps.js";
+} from "./timestamps";
 import type {
   ShopifyOrder,
   ShopifyCustomer,
@@ -36,7 +36,7 @@ import type {
   ShopifyCollectionProduct,
   ShopifyAddress,
   GeneratorOutput,
-} from "./schema.js";
+} from "./schema";
 
 /** Full input for a single synthetic data generation run. */
 export interface GeneratorInput {

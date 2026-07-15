@@ -1,4 +1,4 @@
-import type { BaseProfile } from "../segments.js";
+import type { BaseProfile } from "../segments";
 import bloomJson from "./bloom.json" with { type: "json" };
 import threadrushJson from "./threadrush.json" with { type: "json" };
 import fanvaultJson from "./fanvault.json" with { type: "json" };

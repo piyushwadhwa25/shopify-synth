@@ -1,9 +1,9 @@
-import { generate } from "../src/lib/core/generate.js";
-import type { GeneratorInput } from "../src/lib/core/generate.js";
-import { getScenarioCatalog } from "../src/lib/core/catalogs.js";
-import { parsePaste } from "../src/lib/parser/index.js";
-import { PROFILES } from "../src/lib/core/profiles/index.js";
-import type { FestivalSpike } from "../src/lib/core/timestamps.js";
+import { generate } from "../src/lib/core/generate";
+import type { GeneratorInput } from "../src/lib/core/generate";
+import { getScenarioCatalog } from "../src/lib/core/catalogs";
+import { parsePaste } from "../src/lib/parser/index";
+import { PROFILES } from "../src/lib/core/profiles/index";
+import type { FestivalSpike } from "../src/lib/core/timestamps";
 import * as fs from "fs";
 import * as path from "path";
 

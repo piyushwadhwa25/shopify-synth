@@ -1,5 +1,5 @@
-import type { RNGState } from "./rng.js";
-import { nextNormal } from "./rng.js";
+import type { RNGState } from "./rng";
+import { nextNormal } from "./rng";
 
 /** Ways a scenario parameter can evolve across the generation period. */
 export type TrendMode =

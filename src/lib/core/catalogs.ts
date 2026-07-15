@@ -1,7 +1,7 @@
 import type {
   CatalogCollection,
   CatalogProduct,
-} from "./generate.js";
+} from "./generate";
 
 /** Catalog and collections for a scenario slug. */
 export interface ScenarioCatalog {

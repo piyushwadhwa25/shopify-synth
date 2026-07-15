@@ -1,4 +1,4 @@
-import type { TrendConfig } from "./trend.js";
+import type { TrendConfig } from "./trend";
 
 /** Parameters that can vary per date-bounded segment; unspecified fields inherit from the base profile. */
 export interface SegmentParams {

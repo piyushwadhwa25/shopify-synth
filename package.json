@@ -2,17 +2,12 @@
   "name": "shopify-synth",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate": "node --loader ts-node/esm scripts/cli.ts"
+    "generate": "tsx scripts/cli.ts"
   },
   "dependencies": {
     "next": "16.2.6",
@@ -28,6 +23,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }
