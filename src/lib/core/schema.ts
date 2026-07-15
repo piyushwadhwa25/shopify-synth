@@ -31,6 +31,7 @@ export type ShopifyProductVariant = {
   id: number;
   product_id: number;
   title: string;
+  sku?: string;
   price: string;
   inventory_quantity: number;
 };
@@ -70,6 +71,7 @@ export type ShopifyLineItem = {
   variant_id: number;
   title: string;
   variant_title: string;
+  sku?: string;
   quantity: number;
   price: string;
   total_discount: string;

@@ -49,6 +49,8 @@ export interface GeneratorInput {
 }
 
 /** Simplified product definition supplied by the caller; inflated into `ShopifyProduct`. */
+export type CatalogVariant = string | { title: string; sku?: string };
+
 export interface CatalogProduct {
   store_id: string;
   title: string;
@@ -56,7 +58,7 @@ export interface CatalogProduct {
   price_mean: number;
   price_std: number;
   revenue_share: number;
-  variants: string[];
+  variants: CatalogVariant[];
   is_dead?: boolean;
 }
 
@@ -679,7 +681,9 @@ function inflateCatalogProduct(
 ): ShopifyProduct {
   const createdAt = `${periodStart}T00:00:00${IST_OFFSET}`;
   const variants: ShopifyProductVariant[] = catalogProduct.variants.map(
-    (title, index) => {
+    (variant, index) => {
+      const normalized =
+        typeof variant === "string" ? { title: variant } : variant;
       const price = nextNormal(
         rng,
         catalogProduct.price_mean,
@@ -689,7 +693,8 @@ function inflateCatalogProduct(
       return {
         id: startingVariantId + index,
         product_id: productId,
-        title,
+        title: normalized.title,
+        ...(normalized.sku ? { sku: normalized.sku } : {}),
         price: formatMoney(price),
         inventory_quantity: nextInt(rng, 20, 500),
       };
@@ -816,6 +821,7 @@ function buildLineItems(
       variant_id: variant.id,
       title: entry.product.title,
       variant_title: variant.title,
+      ...(variant.sku ? { sku: variant.sku } : {}),
       quantity,
       price: formatMoney(unitPrice),
       total_discount: "0.00",

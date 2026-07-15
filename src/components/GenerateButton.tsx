@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { generate } from "../lib/core/generate";
+import type { CatalogProduct } from "../lib/core/generate";
 import type { FestivalSpike } from "../lib/core/timestamps";
 import { getScenarioCatalog } from "../lib/core/catalogs";
 import { PROFILES } from "../lib/core/profiles/index";
@@ -42,6 +43,8 @@ export interface GenerateButtonProps {
   parseResult: ParseResult | null;
   selectedScenario: string | null;
   globalPeriod: GlobalPeriod;
+  /** When set, replaces the hardcoded scenario catalog for this run. */
+  uploadedCatalog?: CatalogProduct[] | null;
   onComplete: (output: GeneratorOutput) => void;
 }
 
@@ -69,6 +72,7 @@ export function GenerateButton({
   parseResult,
   selectedScenario,
   globalPeriod,
+  uploadedCatalog = null,
   onComplete,
 }: GenerateButtonProps) {
   const [loading, setLoading] = useState(false);
@@ -87,7 +91,9 @@ export function GenerateButton({
     }
 
     const base = PROFILES[selectedScenario];
-    const { catalog, collections } = getScenarioCatalog(selectedScenario);
+    const scenario = getScenarioCatalog(selectedScenario);
+    const catalog = uploadedCatalog ?? scenario.catalog;
+    const collections = uploadedCatalog ? [] : scenario.collections;
     const global = parseResult.global ?? globalPeriod;
 
     setLoading(true);

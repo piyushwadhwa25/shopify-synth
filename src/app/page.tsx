@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { CatalogUpload } from "../components/CatalogUpload";
 import { GenerateButton } from "../components/GenerateButton";
 import { GlobalPeriodForm } from "../components/GlobalPeriodForm";
 import { PasteArea, PASTE_HEADER } from "../components/PasteArea";
 import { ScenarioPicker } from "../components/ScenarioPicker";
 import { TimelinePreview } from "../components/TimelinePreview";
+import type { CatalogProduct } from "../lib/core/generate";
 import { PROFILES } from "../lib/core/profiles/index";
 import type { GeneratorOutput } from "../lib/core/schema";
 import type { ParseResult } from "../lib/parser/index";
@@ -152,6 +154,9 @@ export default function Home() {
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [, setGeneratorOutput] = useState<GeneratorOutput | null>(null);
+  const [uploadedCatalog, setUploadedCatalog] = useState<
+    CatalogProduct[] | null
+  >(null);
 
   const handleParsed = useCallback((result: ParseResult) => {
     setParseResult(result);
@@ -160,6 +165,15 @@ export default function Home() {
   const handleGenerateComplete = useCallback((output: GeneratorOutput) => {
     setGeneratorOutput(output);
   }, []);
+
+  const handleCatalogParsed = useCallback(
+    (catalog: CatalogProduct[] | null, _warnings: string[]) => {
+      setUploadedCatalog(catalog);
+    },
+    [],
+  );
+
+  const catalogStoreId = selectedScenario ?? "";
 
   const presetRaw = useMemo(() => {
     if (!selectedScenario) {
@@ -188,6 +202,11 @@ export default function Home() {
 
           <ScenarioPicker onSelect={setSelectedScenario} />
 
+          <CatalogUpload
+            storeId={catalogStoreId}
+            onCatalogParsed={handleCatalogParsed}
+          />
+
           <PasteArea
             globalPeriod={globalPeriod}
             onParsed={handleParsed}
@@ -205,6 +224,7 @@ export default function Home() {
             parseResult={parseResult}
             selectedScenario={selectedScenario}
             globalPeriod={globalPeriod}
+            uploadedCatalog={uploadedCatalog}
             onComplete={handleGenerateComplete}
           />
         </div>

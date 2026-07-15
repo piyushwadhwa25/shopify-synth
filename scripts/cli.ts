@@ -1,7 +1,8 @@
 import { generate } from "../src/lib/core/generate";
-import type { GeneratorInput } from "../src/lib/core/generate";
+import type { CatalogProduct, GeneratorInput } from "../src/lib/core/generate";
 import { getScenarioCatalog } from "../src/lib/core/catalogs";
 import { parsePaste } from "../src/lib/parser/index";
+import { parseProductCSV } from "../src/lib/parser/product-csv";
 import { PROFILES } from "../src/lib/core/profiles/index";
 import type { FestivalSpike } from "../src/lib/core/timestamps";
 import * as fs from "fs";
@@ -75,19 +76,22 @@ function printUsage(): void {
 shopify-synth — generate synthetic Shopify store JSON
 
 Usage:
-  npx ts-node scripts/cli.ts --profile <name> --output <path>
-  npx ts-node scripts/cli.ts --config <path> --output <path>
+  npx tsx scripts/cli.ts --profile <name> --output <path>
+  npx tsx scripts/cli.ts --config <path> --output <path>
+  npx tsx scripts/cli.ts --profile <name> --catalog <csv> --output <path>
 
 Flags:
   --profile <name>   Built-in profile: ${VALID_PROFILES.join(", ")}
                      Uses period 2025-06-01 → 2026-02-28, seed 42, empty segments
   --config <path>    Full GeneratorInput JSON file
+  --catalog <path>   Optional Shopify product export CSV; replaces built-in catalog
   --output <path>    Output file path (required)
   --help             Show this message
 
 Examples:
-  npx ts-node scripts/cli.ts --profile bloom --output ./output/bloom.json
-  npx ts-node scripts/cli.ts --config ./my-config.json --output ./output/custom.json
+  npx tsx scripts/cli.ts --profile bloom --output ./output/bloom.json
+  npx tsx scripts/cli.ts --profile bloom --catalog ./products.csv --output ./bloom.json
+  npx tsx scripts/cli.ts --config ./my-config.json --output ./output/custom.json
   npm run generate -- --profile bloom --output ./bloom.json
 `);
 }
@@ -96,8 +100,13 @@ Examples:
  * Builds a default {@link GeneratorInput} for a built-in profile slug.
  *
  * @param profileName - Key in {@link PROFILES}, e.g. `"bloom"`.
+ * @param catalogOverride - When set, replaces the hardcoded scenario catalog
+ *   (collections are cleared because they reference built-in product store IDs).
  */
-function buildProfileInput(profileName: string): GeneratorInput {
+function buildProfileInput(
+  profileName: string,
+  catalogOverride?: CatalogProduct[],
+): GeneratorInput {
   const base = PROFILES[profileName];
   if (!base) {
     throw new Error(
@@ -116,8 +125,8 @@ function buildProfileInput(profileName: string): GeneratorInput {
     base,
     segments: [],
     spikes: STANDARD_FESTIVAL_SPIKES,
-    catalog,
-    collections,
+    catalog: catalogOverride ?? catalog,
+    collections: catalogOverride !== undefined ? [] : collections,
   };
 }
 
@@ -164,6 +173,39 @@ function loadConfigInput(configPath: string): GeneratorInput {
 }
 
 /**
+ * Loads and parses a Shopify product export CSV into catalog products.
+ *
+ * @param catalogPath - Path to the CSV file.
+ * @param profileId - Passed through as every product's `store_id`.
+ */
+function loadCatalogCsv(
+  catalogPath: string,
+  profileId: string,
+): CatalogProduct[] {
+  const resolved = path.resolve(catalogPath);
+  if (!fs.existsSync(resolved)) {
+    console.error(`Error: catalog file not found: ${resolved}`);
+    process.exit(1);
+  }
+
+  const text = fs.readFileSync(resolved, "utf-8");
+  const { catalog, warnings } = parseProductCSV(text, profileId);
+
+  for (const warning of warnings) {
+    console.error(`Warning: ${warning}`);
+  }
+
+  if (catalog.length === 0) {
+    console.error(
+      "Error: catalog CSV produced 0 products (need rows with Variant SKU).",
+    );
+    process.exit(1);
+  }
+
+  return catalog;
+}
+
+/**
  * CLI entry: parse flags, run {@link generate}, write output JSON.
  */
 async function main(): Promise<void> {
@@ -199,9 +241,21 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const input = hasProfile
-    ? buildProfileInput(flags.profile)
-    : loadConfigInput(flags.config);
+  let input: GeneratorInput;
+
+  if (hasProfile) {
+    const catalogOverride = flags.catalog
+      ? loadCatalogCsv(flags.catalog, flags.profile)
+      : undefined;
+    input = buildProfileInput(flags.profile, catalogOverride);
+  } else {
+    input = loadConfigInput(flags.config);
+    if (flags.catalog) {
+      const profileId = input.base.store_id;
+      const catalog = loadCatalogCsv(flags.catalog, profileId);
+      input = { ...input, catalog, collections: [] };
+    }
+  }
 
   const output = generate(input);
   const resolvedOutput = path.resolve(outputPath);
