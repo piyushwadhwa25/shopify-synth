@@ -1,4 +1,4 @@
-import { nextInt, type RNGState } from "./rng";
+import { nextInt, nextNormal, type RNGState } from "./rng";
 import type { ResolvedParams } from "./segments";
 
 /** Festival or sale window that multiplies daily order volume. */
@@ -51,10 +51,11 @@ export function getFestivalMultiplier(
 
 /**
  * Computes the order count for a single day after weekend and festival scaling,
- * then applies Poisson-like daily variance around the adjusted mean.
+ * then samples around the adjusted mean using the trend-adjusted daily std.
  *
  * @param date - ISO date string for the day.
  * @param baseMean - Trend-adjusted `orders_per_day_mean` from the caller.
+ * @param trendedStd - Trend-adjusted `orders_per_day_std` from the caller.
  * @param params - Resolved segment parameters (weekend multiplier).
  * @param spikes - Festival spikes that may boost volume.
  * @param rng - Shared RNG instance.
@@ -63,6 +64,7 @@ export function getFestivalMultiplier(
 export function getDayOrderCount(
   date: string,
   baseMean: number,
+  trendedStd: number,
   params: ResolvedParams,
   spikes: FestivalSpike[],
   rng: RNGState,
@@ -78,10 +80,17 @@ export function getDayOrderCount(
     return 0;
   }
 
-  return nextInt(
-    rng,
-    Math.max(1, Math.round(adjustedMean * 0.9)),
-    Math.round(adjustedMean * 1.1),
+  return Math.max(
+    1,
+    Math.round(
+      nextNormal(
+        rng,
+        adjustedMean,
+        trendedStd,
+        adjustedMean * 0.5,
+        adjustedMean * 1.5,
+      ),
+    ),
   );
 }
 

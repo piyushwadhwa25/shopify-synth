@@ -84,16 +84,13 @@ interface CityInfo {
 /** Trend-adjusted segment parameters used when generating a single day. */
 interface TrendedDayParams {
   ordersPerDayMean: number;
+  ordersPerDayStd: number;
   newCustomerRate: number;
-  codRate: number;
+  repeatPurchaseProbability: number;
   codRtoRate: number;
-  prepaidRefundRate: number;
-  discountRate: number;
   discountAmountMean: number;
   aovMean: number;
   aovStd: number;
-  eveningConcentration: number;
-  weekendMultiplier: number;
 }
 
 const IST_OFFSET = "+05:30";
@@ -250,6 +247,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
     const orderCount = getDayOrderCount(
       date,
       trended.ordersPerDayMean,
+      trended.ordersPerDayStd,
       params,
       spikes,
       rng,
@@ -294,12 +292,22 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       const city = pickCity(rng, geoDistribution);
 
       // Customer assignment: new vs returning, with empty-pool fallback.
+      // Returning candidates must also pass repeat_purchase_probability.
       let customer: ShopifyCustomer;
       const poolCustomers = Array.from(customerPool.values());
-      if (
+      let isNewCustomer =
         poolCustomers.length === 0 ||
-        nextBool(rng, trended.newCustomerRate)
-      ) {
+        nextBool(rng, trended.newCustomerRate);
+      if (!isNewCustomer) {
+        const willRepeat = nextBool(
+          rng,
+          trended.repeatPurchaseProbability,
+        );
+        if (!willRepeat) {
+          isNewCustomer = true;
+        }
+      }
+      if (isNewCustomer) {
         customer = createCustomer(nextCustomerId, city, createdAt, rng);
         nextCustomerId += 1;
         customerPool.set(customer.id, customer);
@@ -314,25 +322,37 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         rng,
       );
 
-      // Resample line items until subtotal is within 15% above target AOV.
+      // AOV-driven basket/price logic uses the day's trended AOV, not the
+      // untrended base/segment value (keeps baskets aligned with discount caps).
+      const aovAdjustedParams: ResolvedParams = {
+        ...params,
+        aov_mean: trended.aovMean,
+        aov_std: trended.aovStd,
+      };
+
+      // Resample line items until subtotal is within tolerance of target AOV.
       let lineItems = buildLineItems(
         inflatedCatalog,
         rng,
         nextLineItemId,
-        params,
+        aovAdjustedParams,
       );
       nextLineItemId += lineItems.length;
 
+      // aov_std controls how tightly baskets cluster around aov_mean — wide std tolerates more basket variance before resampling kicks in.
+      const tolerance = Math.min(
+        0.5,
+        Math.max(0.05, trended.aovStd / trended.aovMean),
+      );
+      const upperBound = trended.aovMean * (1 + tolerance);
+
       let attempts = 0;
-      while (
-        sumLineItems(lineItems) > params.aov_mean * 1.15 &&
-        attempts < 5
-      ) {
+      while (sumLineItems(lineItems) > upperBound && attempts < 5) {
         lineItems = buildLineItems(
           inflatedCatalog,
           rng,
           nextLineItemId,
-          params,
+          aovAdjustedParams,
         );
         nextLineItemId += lineItems.length;
         attempts += 1;
@@ -349,6 +369,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
           0,
           trended.aovMean * 0.5,
         );
+        discountAmount = Math.min(discountAmount, subtotal * 0.9);
       }
 
       const totalPrice = Math.max(0, subtotal - discountAmount);
@@ -530,6 +551,13 @@ function buildTrendedDayParams(
       trend,
       rng,
     ),
+    ordersPerDayStd: applyTrend(
+      dayIndex,
+      totalDays,
+      params.orders_per_day_std,
+      trend,
+      rng,
+    ),
     newCustomerRate: applyTrendClamped(
       dayIndex,
       totalDays,
@@ -539,37 +567,17 @@ function buildTrendedDayParams(
       0,
       1,
     ),
-    codRate: applyTrendClamped(
+    repeatPurchaseProbability: applyTrend(
       dayIndex,
       totalDays,
-      params.cod_rate,
-      rateTrend,
+      params.repeat_purchase_probability,
+      trend,
       rng,
-      0,
-      1,
     ),
     codRtoRate: applyTrendClamped(
       dayIndex,
       totalDays,
       params.cod_rto_rate,
-      rateTrend,
-      rng,
-      0,
-      1,
-    ),
-    prepaidRefundRate: applyTrendClamped(
-      dayIndex,
-      totalDays,
-      params.prepaid_refund_rate,
-      rateTrend,
-      rng,
-      0,
-      1,
-    ),
-    discountRate: applyTrendClamped(
-      dayIndex,
-      totalDays,
-      params.discount_rate,
       rateTrend,
       rng,
       0,
@@ -584,22 +592,6 @@ function buildTrendedDayParams(
     ),
     aovMean: applyTrend(dayIndex, totalDays, params.aov_mean, trend, rng),
     aovStd: applyTrend(dayIndex, totalDays, params.aov_std, trend, rng),
-    eveningConcentration: applyTrendClamped(
-      dayIndex,
-      totalDays,
-      params.evening_concentration,
-      rateTrend,
-      rng,
-      0,
-      1,
-    ),
-    weekendMultiplier: applyTrend(
-      dayIndex,
-      totalDays,
-      params.weekend_multiplier,
-      trend,
-      rng,
-    ),
   };
 }
 
