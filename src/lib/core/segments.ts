@@ -92,23 +92,24 @@ function* iterateDatesInclusive(
 }
 
 /** Validates numeric constraints on a partial parameter set. */
-function collectParamErrors(
+export function collectParamErrors(
   params: SegmentParams,
-  label: string,
+  label?: string,
 ): string[] {
   const errors: string[] = [];
+  const prefix = label ? `${label}: ` : "";
 
   for (const field of RATE_FIELDS) {
     const value = params[field];
     if (typeof value === "number" && (value < 0 || value > 1)) {
-      errors.push(`${label}: ${field} must be in [0, 1], got ${value}`);
+      errors.push(`${prefix}${field} must be in [0, 1], got ${value}`);
     }
   }
 
   for (const field of NON_NEGATIVE_FIELDS) {
     const value = params[field];
     if (typeof value === "number" && value < 0) {
-      errors.push(`${label}: ${field} must be >= 0, got ${value}`);
+      errors.push(`${prefix}${field} must be >= 0, got ${value}`);
     }
   }
 
