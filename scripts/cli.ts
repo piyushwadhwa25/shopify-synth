@@ -4,6 +4,8 @@ import { parsePaste } from "../src/lib/parser/index";
 import { parseProductCSV } from "../src/lib/parser/product-csv";
 import { PROFILES } from "../src/lib/core/profiles/index";
 import type { FestivalSpike } from "../src/lib/core/timestamps";
+import type { SegmentParams } from "../src/lib/core/segments";
+import { validateBaseParams } from "../src/lib/core/validate-base-params";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -36,6 +38,23 @@ const STANDARD_FESTIVAL_SPIKES: FestivalSpike[] = [
 ];
 
 const VALID_PROFILES = Object.keys(PROFILES);
+
+/** Numeric fields expected in a `--params` JSON file. */
+const PARAM_NUMERIC_KEYS = [
+  "orders_per_day_mean",
+  "orders_per_day_std",
+  "new_customer_rate",
+  "repeat_purchase_probability",
+  "cod_rate",
+  "cod_rto_rate",
+  "prepaid_refund_rate",
+  "discount_rate",
+  "discount_amount_mean",
+  "aov_mean",
+  "aov_std",
+  "weekend_multiplier",
+  "evening_concentration",
+] as const satisfies readonly (keyof SegmentParams)[];
 
 /**
  * Parses `process.argv` into a flat flags map (`--key` → value).
@@ -76,39 +95,124 @@ shopify-synth — generate synthetic Shopify store JSON
 
 Usage:
   npx tsx scripts/cli.ts --profile <name> --catalog <csv> --output <path>
-  npx tsx scripts/cli.ts --config <path> --catalog <csv> --output <path>
+  npx tsx scripts/cli.ts --params <json> --catalog <csv> --output <path>
+  npx tsx scripts/cli.ts --params <json> --config <path> --catalog <csv> --output <path>
 
 Flags:
-  --profile <name>   Built-in profile: ${VALID_PROFILES.join(", ")}
+  --params <path>    Required<SegmentParams> JSON (13 numeric fields + optional trend)
+  --profile <name>   Quick-fill params from preset: ${VALID_PROFILES.join(", ")}
                      Uses period 2025-06-01 → 2026-02-28, seed 42, empty segments
-  --config <path>    GeneratorInput JSON (global, base, segments, spikes)
+  --config <path>    Optional GeneratorInput JSON for global/segments/spikes
+                     (base params still come from --params or --profile)
   --catalog <path>   Shopify product export CSV (required)
   --output <path>    Output file path (required)
   --help             Show this message
 
 Examples:
   npx tsx scripts/cli.ts --profile bloom --catalog ./products.csv --output ./bloom.json
-  npx tsx scripts/cli.ts --config ./my-config.json --catalog ./products.csv --output ./custom.json
+  npx tsx scripts/cli.ts --params ./my-params.json --catalog ./products.csv --output ./out.json
   npm run generate -- --profile bloom --catalog ./products.csv --output ./bloom.json
 `);
 }
 
 /**
- * Builds a default {@link GeneratorInput} for a built-in profile slug.
+ * Loads and validates a {@link Required<SegmentParams>} JSON file.
  *
- * @param profileName - Key in {@link PROFILES}, e.g. `"bloom"`.
- * @param catalog - Products from a Shopify export CSV (required).
+ * @param paramsPath - Path to the params JSON.
  */
-function buildProfileInput(
-  profileName: string,
-  catalog: CatalogProduct[],
-): GeneratorInput {
-  const base = PROFILES[profileName];
-  if (!base) {
+function loadParamsFile(paramsPath: string): Required<SegmentParams> {
+  const resolved = path.resolve(paramsPath);
+  if (!fs.existsSync(resolved)) {
+    console.error(`Error: params file not found: ${resolved}`);
+    process.exit(1);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(fs.readFileSync(resolved, "utf-8"));
+  } catch (err) {
+    console.error(
+      `Error: failed to parse params JSON at ${resolved}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    process.exit(1);
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    console.error(`Error: params file must be a JSON object: ${resolved}`);
+    process.exit(1);
+  }
+
+  const raw = parsed as Record<string, unknown>;
+  for (const key of PARAM_NUMERIC_KEYS) {
+    if (typeof raw[key] !== "number" || !Number.isFinite(raw[key] as number)) {
+      console.error(
+        `Error: params.${key} must be a finite number in ${resolved}`,
+      );
+      process.exit(1);
+    }
+  }
+
+  const params: Required<SegmentParams> = {
+    orders_per_day_mean: raw.orders_per_day_mean as number,
+    orders_per_day_std: raw.orders_per_day_std as number,
+    new_customer_rate: raw.new_customer_rate as number,
+    repeat_purchase_probability: raw.repeat_purchase_probability as number,
+    cod_rate: raw.cod_rate as number,
+    cod_rto_rate: raw.cod_rto_rate as number,
+    prepaid_refund_rate: raw.prepaid_refund_rate as number,
+    discount_rate: raw.discount_rate as number,
+    discount_amount_mean: raw.discount_amount_mean as number,
+    aov_mean: raw.aov_mean as number,
+    aov_std: raw.aov_std as number,
+    weekend_multiplier: raw.weekend_multiplier as number,
+    evening_concentration: raw.evening_concentration as number,
+    trend:
+      raw.trend && typeof raw.trend === "object"
+        ? (raw.trend as Required<SegmentParams>["trend"])
+        : { mode: "flat", strength: 0 },
+  };
+
+  const errors = validateBaseParams(params);
+  if (errors.length > 0) {
+    for (const error of errors) {
+      console.error(`Error: ${error}`);
+    }
+    process.exit(1);
+  }
+
+  return params;
+}
+
+/**
+ * Resolves base params from `--params` (preferred) or `--profile` quick-fill.
+ */
+function resolveBaseParams(flags: Record<string, string>): Required<SegmentParams> {
+  if (flags.params) {
+    return loadParamsFile(flags.params);
+  }
+
+  const profile = PROFILES[flags.profile];
+  if (!profile) {
     throw new Error(
-      `Unknown profile "${profileName}". Valid profiles: ${VALID_PROFILES.join(", ")}`,
+      `Unknown profile "${flags.profile}". Valid profiles: ${VALID_PROFILES.join(", ")}`,
     );
   }
+  return profile.params;
+}
+
+/**
+ * Builds a default {@link GeneratorInput} using resolved base params.
+ *
+ * @param params - Base generation parameters.
+ * @param catalog - Products from a Shopify export CSV (required).
+ * @param scenarioLabel - Label written to `base.scenario` / download context.
+ */
+function buildDefaultInput(
+  params: Required<SegmentParams>,
+  catalog: CatalogProduct[],
+  scenarioLabel: string,
+): GeneratorInput {
+  const storeId = catalog[0]?.store_id ?? "custom-store";
 
   return {
     global: {
@@ -116,7 +220,11 @@ function buildProfileInput(
       period_end: "2026-02-28",
       seed: 42,
     },
-    base,
+    base: {
+      scenario: scenarioLabel,
+      store_id: storeId,
+      params,
+    },
     segments: [],
     spikes: STANDARD_FESTIVAL_SPIKES,
     catalog,
@@ -235,37 +343,43 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const hasParams = flags.params !== undefined;
   const hasProfile = flags.profile !== undefined;
-  const hasConfig = flags.config !== undefined;
 
-  if (hasProfile && hasConfig) {
-    console.error("Error: use either --profile or --config, not both.");
-    process.exit(1);
-  }
-
-  if (!hasProfile && !hasConfig) {
+  if (!hasParams && !hasProfile) {
     console.error(
-      "Error: provide --profile <name> or --config <path> to define the run.",
+      "Provide --params <file> with explicit values, or --profile <id> to quick-fill from a preset (src/lib/core/profiles/).",
     );
-    printUsage();
     process.exit(1);
   }
 
   const catalog = loadCatalogCsv(flags.catalog);
+  const params = resolveBaseParams(flags);
+  const scenarioLabel = hasParams
+    ? "custom"
+    : (PROFILES[flags.profile]?.scenario ?? flags.profile);
 
-  const input: GeneratorInput = hasProfile
-    ? buildProfileInput(flags.profile, catalog)
-    : (() => {
-        const config = loadConfigInput(flags.config);
-        return {
-          global: config.global,
-          base: config.base,
-          segments: config.segments,
-          spikes: config.spikes,
-          catalog,
-          collections: [],
-        };
-      })();
+  let input: GeneratorInput;
+
+  if (flags.config) {
+    const config = loadConfigInput(flags.config);
+    const storeId = catalog[0]?.store_id ?? config.base.store_id;
+    input = {
+      global: config.global,
+      base: {
+        ...config.base,
+        scenario: scenarioLabel,
+        store_id: storeId,
+        params,
+      },
+      segments: config.segments,
+      spikes: config.spikes,
+      catalog,
+      collections: [],
+    };
+  } else {
+    input = buildDefaultInput(params, catalog, scenarioLabel);
+  }
 
   const output = generate(input);
   const resolvedOutput = path.resolve(outputPath);
