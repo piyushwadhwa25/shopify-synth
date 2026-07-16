@@ -82,9 +82,7 @@ function buildDisabledHelper(options: {
     parts.push(`Fix ${options.paramErrorCount} parameter errors`);
   }
 
-  if (options.parseResult === null) {
-    parts.push("Paste a segment timeline");
-  } else if (options.parseResult.errors.length > 0) {
+  if (options.parseResult !== null && options.parseResult.errors.length > 0) {
     parts.push("Fix paste errors");
   }
 
@@ -111,20 +109,20 @@ export function GenerateButton({
     baseParams === null ? [] : validateBaseParams(baseParams);
   const paramsValid = baseParams !== null && paramErrors.length === 0;
 
+  const hasPasteErrors =
+    parseResult !== null && parseResult.errors.length > 0;
+
   const isDisabled =
-    loading ||
-    parseResult === null ||
-    parseResult.errors.length > 0 ||
-    !hasCatalog ||
-    !paramsValid;
+    loading || !hasCatalog || !paramsValid || hasPasteErrors;
 
   const handleGenerate = () => {
-    if (isDisabled || !parseResult || !catalog || !baseParams) {
+    if (isDisabled || !catalog || !baseParams) {
       return;
     }
 
     const storeId = catalog[0]?.store_id ?? "custom-store";
-    const global = parseResult.global ?? globalPeriod;
+    const global = parseResult?.global ?? globalPeriod;
+    const segments = parseResult?.segments ?? [];
 
     setLoading(true);
     setSummary(null);
@@ -137,7 +135,7 @@ export function GenerateButton({
           store_id: storeId,
           params: baseParams,
         },
-        segments: parseResult.segments,
+        segments,
         spikes: INDIA_FESTIVAL_SPIKES,
         catalog,
         collections: [],

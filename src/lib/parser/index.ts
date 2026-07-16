@@ -75,9 +75,9 @@ export function parsePaste(
     .map((line) => line.trim())
     .filter((line) => line.length > 0 && !line.startsWith("#"));
 
+  // Empty / whitespace-only paste means no segment overrides — valid.
   if (lines.length === 0) {
-    addError(errors, 1, null, "Paste is empty");
-    return { segments, global: null, errors, warnings };
+    return { segments: [], global: null, errors: [], warnings: [] };
   }
 
   const headers = splitCsvLine(lines[0]).map((h) => h.toLowerCase());

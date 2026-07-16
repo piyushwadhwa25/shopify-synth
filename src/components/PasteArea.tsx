@@ -64,7 +64,8 @@ export function PasteArea({
 
   useEffect(() => {
     if (!raw.trim()) {
-      setResult(null);
+      // Empty paste = no overrides; keep parent in sync with a valid empty result.
+      runParse("");
       return () => {
         if (debounceRef.current) {
           clearTimeout(debounceRef.current);
@@ -77,7 +78,7 @@ export function PasteArea({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [raw, globalPeriod, scheduleParse]);
+  }, [raw, globalPeriod, scheduleParse, runParse]);
 
   const handleCopyHeader = async () => {
     try {
@@ -94,11 +95,7 @@ export function PasteArea({
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    if (!raw.trim()) {
-      setResult(null);
-      return;
-    }
-    runParse(raw);
+    runParse(raw.trim() ? raw : "");
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
