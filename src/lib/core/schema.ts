@@ -121,6 +121,34 @@ export type ShopifyOrder = {
   note: string | null;
 };
 
+/**
+ * Per-day snapshot of the live parameter values used during generation
+ * (trended means / day-loop rate draws). Optional instrumentation on output.
+ */
+export interface DayParamSnapshot {
+  date: string;
+  orders_per_day_mean: number;
+  orders_per_day_std: number;
+  new_customer_rate: number;
+  repeat_purchase_probability: number;
+  cod_rate: number;
+  cod_rto_rate: number;
+  prepaid_refund_rate: number;
+  discount_rate: number;
+  discount_amount_mean: number;
+  aov_mean: number;
+  aov_std: number;
+}
+
+/**
+ * Counters for the returning-customer gate driven by
+ * `repeat_purchase_probability`. Optional instrumentation on output.
+ */
+export interface BranchCounters {
+  repeat_branch_attempts: number;
+  repeat_branch_successes: number;
+}
+
 /** Top-level payload returned by the synthetic data generator. */
 export type GeneratorOutput = {
   store_id: string;
@@ -134,4 +162,8 @@ export type GeneratorOutput = {
   products: ShopifyProduct[];
   collections: ShopifyCollection[];
   collection_products: ShopifyCollectionProduct[];
+  /** Per-day live params used during the run (instrumentation). */
+  dayParams?: DayParamSnapshot[];
+  /** Repeat-purchase branch hit rates (instrumentation). */
+  branchCounters?: BranchCounters;
 };

@@ -36,6 +36,8 @@ import type {
   ShopifyCollectionProduct,
   ShopifyAddress,
   GeneratorOutput,
+  DayParamSnapshot,
+  BranchCounters,
 } from "./schema";
 
 /** Full input for a single synthetic data generation run. */
@@ -223,6 +225,11 @@ export function generate(input: GeneratorInput): GeneratorOutput {
 
   const customerPool = new Map<number, ShopifyCustomer>();
   const orders: ShopifyOrder[] = [];
+  const dayParams: DayParamSnapshot[] = [];
+  const branchCounters: BranchCounters = {
+    repeat_branch_attempts: 0,
+    repeat_branch_successes: 0,
+  };
 
   const geoDistribution = getGeoDistribution(base);
   const dayCount = countDaysInclusive(global.period_start, global.period_end);
@@ -288,6 +295,22 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       1,
     );
 
+    // Record the live values actually used for this day (instrumentation only).
+    dayParams.push({
+      date,
+      orders_per_day_mean: trended.ordersPerDayMean,
+      orders_per_day_std: trended.ordersPerDayStd,
+      new_customer_rate: trended.newCustomerRate,
+      repeat_purchase_probability: trended.repeatPurchaseProbability,
+      cod_rate: dayCodRate,
+      cod_rto_rate: trended.codRtoRate,
+      prepaid_refund_rate: dayRefundRate,
+      discount_rate: dayDiscountRate,
+      discount_amount_mean: trended.discountAmountMean,
+      aov_mean: trended.aovMean,
+      aov_std: trended.aovStd,
+    });
+
     for (const createdAt of timestamps) {
       const city = pickCity(rng, geoDistribution);
 
@@ -299,11 +322,14 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         poolCustomers.length === 0 ||
         nextBool(rng, trended.newCustomerRate);
       if (!isNewCustomer) {
+        branchCounters.repeat_branch_attempts += 1;
         const willRepeat = nextBool(
           rng,
           trended.repeatPurchaseProbability,
         );
-        if (!willRepeat) {
+        if (willRepeat) {
+          branchCounters.repeat_branch_successes += 1;
+        } else {
           isNewCustomer = true;
         }
       }
@@ -485,6 +511,8 @@ export function generate(input: GeneratorInput): GeneratorOutput {
     products,
     collections: shopifyCollections,
     collection_products: collectionProducts,
+    dayParams,
+    branchCounters,
   };
 }
 
