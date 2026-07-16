@@ -1,11 +1,12 @@
 import { buildDayMap, resolveParams } from "../lib/core/segments";
-import { PROFILES } from "../lib/core/profiles/index";
+import type { SegmentParams } from "../lib/core/segments";
 import type { ParseResult } from "../lib/parser/index";
 
 /** Props for {@link TimelinePreview}. */
 export interface TimelinePreviewProps {
   parseResult: ParseResult;
-  selectedScenario: string | null;
+  /** Base params used to resolve segment overrides in the preview table. */
+  baseParams: Required<SegmentParams> | null;
 }
 
 /** Inclusive day count between two ISO dates. */
@@ -22,22 +23,17 @@ function formatRate(value: number): string {
 
 /**
  * Summary table of parsed segments with params resolved against the
- * selected scenario base profile.
+ * current base parameters form values.
  */
 export function TimelinePreview({
   parseResult,
-  selectedScenario,
+  baseParams,
 }: TimelinePreviewProps) {
   if (
     parseResult.errors.length > 0 ||
-    !selectedScenario ||
+    !baseParams ||
     parseResult.segments.length === 0
   ) {
-    return null;
-  }
-
-  const profile = PROFILES[selectedScenario];
-  if (!profile) {
     return null;
   }
 
@@ -57,18 +53,18 @@ export function TimelinePreview({
   const dayMap = buildDayMap(
     periodStart,
     periodEnd,
-    profile.params,
+    baseParams,
     parseResult.segments,
   );
 
   const estimatedOrders = parseResult.segments.reduce((sum, segment) => {
-    const resolved = resolveParams(profile.params, segment.params);
+    const resolved = resolveParams(baseParams, segment.params);
     const days = daysInclusive(segment.start_date, segment.end_date);
     return sum + resolved.orders_per_day_mean * days;
   }, 0);
 
   const rows = parseResult.segments.map((segment) => {
-    const resolved = resolveParams(profile.params, segment.params);
+    const resolved = resolveParams(baseParams, segment.params);
     const days = daysInclusive(segment.start_date, segment.end_date);
     return { segment, resolved, days };
   });
