@@ -26,12 +26,13 @@ interface ProductDraft {
  * IDs are not present here — they are assigned later during catalog inflation.
  *
  * @param raw - Full CSV text (Shopify Products → Export format).
- * @param storeId - Value written to every product's `store_id` field.
+ * @param storeId - Value written to every product's `store_id`; defaults to `"custom-store"`.
  */
 export function parseProductCSV(
   raw: string,
-  storeId: string,
+  storeId?: string,
 ): CatalogParseResult {
+  const resolvedStoreId = storeId && storeId.length > 0 ? storeId : "custom-store";
   const warnings: string[] = [];
   const rows = parseCsvRows(raw);
 
@@ -156,7 +157,7 @@ export function parseProductCSV(
     }
 
     const product: CatalogProduct = {
-      store_id: storeId,
+      store_id: resolvedStoreId,
       title: draft.title || handle,
       product_type: draft.productType || "General",
       price_mean: priceMean,

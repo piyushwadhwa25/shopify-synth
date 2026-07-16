@@ -4,7 +4,6 @@ import { useState } from "react";
 import { generate } from "../lib/core/generate";
 import type { CatalogProduct } from "../lib/core/generate";
 import type { FestivalSpike } from "../lib/core/timestamps";
-import { getScenarioCatalog } from "../lib/core/catalogs";
 import { PROFILES } from "../lib/core/profiles/index";
 import type { ParseResult } from "../lib/parser/index";
 import type { GlobalPeriod } from "../lib/core/segments";
@@ -43,8 +42,8 @@ export interface GenerateButtonProps {
   parseResult: ParseResult | null;
   selectedScenario: string | null;
   globalPeriod: GlobalPeriod;
-  /** When set, replaces the hardcoded scenario catalog for this run. */
-  uploadedCatalog?: CatalogProduct[] | null;
+  /** Required product catalog from CSV upload — no built-in fallback. */
+  uploadedCatalog: CatalogProduct[] | null;
   onComplete: (output: GeneratorOutput) => void;
 }
 
@@ -65,35 +64,36 @@ function downloadOutput(
 }
 
 /**
- * Runs the synthetic data generator when the paste is valid and a scenario
- * is selected; shows loading state, summary stats, and triggers JSON download.
+ * Runs the synthetic data generator when the paste is valid, a scenario
+ * is selected, and a product catalog CSV has been uploaded.
  */
 export function GenerateButton({
   parseResult,
   selectedScenario,
   globalPeriod,
-  uploadedCatalog = null,
+  uploadedCatalog,
   onComplete,
 }: GenerateButtonProps) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+
+  const hasCatalog =
+    uploadedCatalog !== null && uploadedCatalog.length > 0;
 
   const isDisabled =
     loading ||
     parseResult === null ||
     parseResult.errors.length > 0 ||
     selectedScenario === null ||
-    !PROFILES[selectedScenario ?? ""];
+    !PROFILES[selectedScenario ?? ""] ||
+    !hasCatalog;
 
   const handleGenerate = () => {
-    if (isDisabled || !parseResult || !selectedScenario) {
+    if (isDisabled || !parseResult || !selectedScenario || !uploadedCatalog) {
       return;
     }
 
     const base = PROFILES[selectedScenario];
-    const scenario = getScenarioCatalog(selectedScenario);
-    const catalog = uploadedCatalog ?? scenario.catalog;
-    const collections = uploadedCatalog ? [] : scenario.collections;
     const global = parseResult.global ?? globalPeriod;
 
     setLoading(true);
@@ -105,8 +105,8 @@ export function GenerateButton({
         base,
         segments: parseResult.segments,
         spikes: INDIA_FESTIVAL_SPIKES,
-        catalog,
-        collections,
+        catalog: uploadedCatalog,
+        collections: [],
       });
 
       setLoading(false);
@@ -133,7 +133,8 @@ export function GenerateButton({
 
       {isDisabled && !loading && (
         <p className="text-sm text-zinc-500">
-          Select a scenario and fix paste errors before generating.
+          Upload a product catalog CSV, select a scenario, and fix paste errors
+          before generating.
         </p>
       )}
 

@@ -8,11 +8,9 @@ import { parseProductCSV } from "../lib/parser/product-csv";
  * Props for {@link CatalogUpload}.
  */
 export interface CatalogUploadProps {
-  /** Written to every parsed product's `store_id` (typically the profile store id). */
-  storeId: string;
   /**
    * Called after a successful parse with the catalog, or with `null` when
-   * cleared so the caller can fall back to the built-in scenario catalog.
+   * cleared (generation requires a catalog again after clear).
    */
   onCatalogParsed: (
     catalog: CatalogProduct[] | null,
@@ -21,13 +19,22 @@ export interface CatalogUploadProps {
 }
 
 /**
- * Optional Shopify product-export CSV upload. When a file is parsed, the
- * parent should pass that catalog into generate; Clear reverts to default.
+ * Derives a store id from an uploaded file name: lowercase, strip extension,
+ * replace non-alphanumeric runs with `-`. Empty results become `"custom-store"`.
  */
-export function CatalogUpload({
-  storeId,
-  onCatalogParsed,
-}: CatalogUploadProps) {
+function storeIdFromFileName(fileName: string): string {
+  const withoutExt = fileName.replace(/\.[^.]+$/, "").toLowerCase();
+  const slug = withoutExt
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "custom-store";
+}
+
+/**
+ * Required Shopify product-export CSV upload. Parsed catalog is passed to
+ * the parent for generation; Clear clears the catalog until a new file is chosen.
+ */
+export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [productCount, setProductCount] = useState<number | null>(null);
   const [variantCount, setVariantCount] = useState<number | null>(null);
@@ -40,6 +47,7 @@ export function CatalogUpload({
       return;
     }
 
+    const storeId = storeIdFromFileName(file.name);
     const reader = new FileReader();
     reader.onload = () => {
       const text = typeof reader.result === "string" ? reader.result : "";
@@ -75,12 +83,10 @@ export function CatalogUpload({
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-900">
-          Product catalog (optional)
-        </h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Product catalog</h2>
         <p className="mt-1 text-sm text-zinc-600">
-          Upload a Shopify product export CSV to generate orders against real
-          SKUs. Skip this to use the built-in scenario catalog.
+          Upload a Shopify product export CSV. Required — generated orders need
+          real SKUs and product IDs to reference.
         </p>
       </div>
 
@@ -89,9 +95,8 @@ export function CatalogUpload({
           ref={inputRef}
           type="file"
           accept=".csv"
-          disabled={!storeId}
           onChange={handleFileChange}
-          className="block w-full max-w-md text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-200 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-800 hover:file:bg-zinc-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="block w-full max-w-md text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-200 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-800 hover:file:bg-zinc-300"
         />
 
         {fileName !== null && (
@@ -104,12 +109,6 @@ export function CatalogUpload({
           </button>
         )}
       </div>
-
-      {!storeId && (
-        <p className="text-sm text-zinc-500">
-          Select a scenario first so uploaded products get a store id.
-        </p>
-      )}
 
       {productCount !== null && (
         <p className="text-sm text-zinc-700">

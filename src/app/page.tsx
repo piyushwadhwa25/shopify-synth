@@ -173,8 +173,6 @@ export default function Home() {
     [],
   );
 
-  const catalogStoreId = selectedScenario ?? "";
-
   const presetRaw = useMemo(() => {
     if (!selectedScenario) {
       return undefined;
@@ -202,10 +200,7 @@ export default function Home() {
 
           <ScenarioPicker onSelect={setSelectedScenario} />
 
-          <CatalogUpload
-            storeId={catalogStoreId}
-            onCatalogParsed={handleCatalogParsed}
-          />
+          <CatalogUpload onCatalogParsed={handleCatalogParsed} />
 
           <PasteArea
             globalPeriod={globalPeriod}
