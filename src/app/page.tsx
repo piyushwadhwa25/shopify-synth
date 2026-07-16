@@ -3,11 +3,13 @@
 import { useCallback, useState } from "react";
 import { BaseParamsForm } from "../components/BaseParamsForm";
 import { CatalogUpload } from "../components/CatalogUpload";
+import { ComparisonTable } from "../components/ComparisonTable";
 import { GenerateButton } from "../components/GenerateButton";
 import { GlobalPeriodForm } from "../components/GlobalPeriodForm";
 import { PasteArea } from "../components/PasteArea";
 import { ScenarioPicker } from "../components/ScenarioPicker";
 import { TimelinePreview } from "../components/TimelinePreview";
+import { compareParams } from "../lib/core/compareParams";
 import type { CatalogProduct } from "../lib/core/generate";
 import type { GeneratorOutput } from "../lib/core/schema";
 import type { ParseResult } from "../lib/parser/index";
@@ -50,15 +52,22 @@ export default function Home() {
   );
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
-  const [, setGeneratorOutput] = useState<GeneratorOutput | null>(null);
+  const [lastOutput, setLastOutput] = useState<GeneratorOutput | null>(null);
+  const [lastInputParams, setLastInputParams] = useState<
+    Required<SegmentParams> | null
+  >(null);
 
   const handleParsed = useCallback((result: ParseResult) => {
     setParseResult(result);
   }, []);
 
-  const handleGenerateComplete = useCallback((output: GeneratorOutput) => {
-    setGeneratorOutput(output);
-  }, []);
+  const handleGenerateComplete = useCallback(
+    (output: GeneratorOutput, usedParams: Required<SegmentParams>) => {
+      setLastOutput(output);
+      setLastInputParams(usedParams);
+    },
+    [],
+  );
 
   const handleCatalogParsed = useCallback(
     (nextCatalog: CatalogProduct[] | null, warnings: string[]) => {
@@ -127,6 +136,12 @@ export default function Home() {
             downloadLabel={selectedPresetId}
             onComplete={handleGenerateComplete}
           />
+
+          {lastOutput && lastInputParams && (
+            <ComparisonTable
+              rows={compareParams(lastOutput, lastInputParams)}
+            />
+          )}
         </div>
       </main>
     </div>

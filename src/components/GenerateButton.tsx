@@ -47,7 +47,11 @@ export interface GenerateButtonProps {
   baseParams: Required<SegmentParams> | null;
   /** Optional label used in the downloaded filename. */
   downloadLabel?: string | null;
-  onComplete: (output: GeneratorOutput) => void;
+  /** Fires with the full output and the exact params used for that run. */
+  onComplete: (
+    output: GeneratorOutput,
+    usedParams: Required<SegmentParams>,
+  ) => void;
 }
 
 /** Triggers JSON download of the generated dataset. */
@@ -145,7 +149,7 @@ export function GenerateButton({
       setSummary(
         `Generated ${output.orders.length.toLocaleString()} orders, ${output.customers.length.toLocaleString()} customers, ${output.products.length.toLocaleString()} products`,
       );
-      onComplete(output);
+      onComplete(output, baseParams);
       downloadOutput(output, downloadLabel ?? storeId);
     }, 0);
   };
