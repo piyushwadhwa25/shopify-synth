@@ -198,7 +198,13 @@ export default function Home() {
             onChange={setGlobalPeriod}
           />
 
-          <ScenarioPicker onSelect={setSelectedScenario} />
+          <ScenarioPicker
+            selectedId={selectedScenario}
+            onSelectId={setSelectedScenario}
+            onQuickFill={() => {
+              /* BaseParamsForm wiring is a follow-up step */
+            }}
+          />
 
           <CatalogUpload onCatalogParsed={handleCatalogParsed} />
 

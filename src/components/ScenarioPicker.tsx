@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import type { SegmentParams } from "../lib/core/segments";
 import { PROFILES } from "../lib/core/profiles/index";
 
 /** Props for {@link ScenarioPicker}. */
 export interface ScenarioPickerProps {
-  onSelect: (scenarioId: string) => void;
+  /** Applies a preset's params into the base-params form. */
+  onQuickFill: (params: Required<SegmentParams>) => void;
+  /** Highlight state only — which preset was last applied. */
+  selectedId: string | null;
+  /** Updates highlight after a card click. */
+  onSelectId: (id: string) => void;
 }
 
 /** One-line archetype copy keyed by profile slug. */
@@ -18,7 +23,7 @@ const ARCHETYPE_DESCRIPTIONS: Record<string, string> = {
   slumberco: "High AOV, low frequency — metro prepaid, festival peaks",
 };
 
-/** Display order for scenario cards. */
+/** Display order for quick-fill cards. */
 const SCENARIO_ORDER = [
   "bloom",
   "threadrush",
@@ -29,15 +34,25 @@ const SCENARIO_ORDER = [
 ] as const;
 
 /**
- * Grid of scenario profile cards. Clicking a card selects it and
- * notifies the parent via `onSelect`.
+ * Optional quick-fill cards that load profile params into BaseParamsForm.
+ * Scenario names are not shown — only the one-line description.
  */
-export function ScenarioPicker({ onSelect }: ScenarioPickerProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
+export function ScenarioPicker({
+  onQuickFill,
+  selectedId,
+  onSelectId,
+}: ScenarioPickerProps) {
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-zinc-900">Scenario</h2>
+      <div>
+        <h2 className="text-lg font-semibold text-zinc-900">
+          Quick-fill (optional)
+        </h2>
+        <p className="mt-1 text-sm text-zinc-600">
+          Click a preset to fill the fields below. You can still edit any value
+          after.
+        </p>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {SCENARIO_ORDER.map((scenarioId) => {
@@ -50,8 +65,8 @@ export function ScenarioPicker({ onSelect }: ScenarioPickerProps) {
               key={scenarioId}
               type="button"
               onClick={() => {
-                setSelectedId(scenarioId);
-                onSelect(scenarioId);
+                onQuickFill(profile.params);
+                onSelectId(scenarioId);
               }}
               className={`rounded-lg border p-4 text-left transition-colors ${
                 isSelected
@@ -59,10 +74,7 @@ export function ScenarioPicker({ onSelect }: ScenarioPickerProps) {
                   : "border-zinc-300 bg-white hover:border-zinc-400 hover:bg-zinc-50"
               }`}
             >
-              <span className="block font-semibold text-zinc-900">
-                {profile.scenario}
-              </span>
-              <span className="mt-1 block text-sm text-zinc-600">
+              <span className="block text-sm font-semibold text-zinc-900">
                 {description}
               </span>
             </button>
