@@ -155,20 +155,18 @@ export function GenerateButton({
   };
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-zinc-900">Generate</h2>
-
+    <div className="space-y-4">
       <button
         type="button"
         disabled={isDisabled}
         onClick={handleGenerate}
-        className="rounded-md bg-green-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500"
+        className="rounded-md bg-signal px-5 py-2.5 font-sans font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? "Generating..." : "Generate dataset"}
       </button>
 
       {isDisabled && !loading && (
-        <p className="text-sm text-zinc-500">
+        <p className="font-sans text-xs text-ink-muted">
           {buildDisabledHelper({
             hasCatalog,
             baseParams,
@@ -179,10 +177,10 @@ export function GenerateButton({
       )}
 
       {summary && (
-        <p className="text-sm font-medium text-green-700" role="status">
+        <p className="font-sans text-sm font-medium text-success" role="status">
           {summary}
         </p>
       )}
-    </section>
+    </div>
   );
 }

@@ -20,43 +20,56 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
     value.period_end <= value.period_start;
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-zinc-900">Generation period</h2>
-
+    <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
-        <label className="flex flex-col gap-1 text-sm text-zinc-700">
-          <span className="font-medium">Start date</span>
+        <div className="flex flex-col">
+          <label
+            htmlFor="period-start"
+            className="mb-1.5 font-sans text-sm font-medium text-ink"
+          >
+            Start date
+          </label>
           <input
+            id="period-start"
             type="date"
             value={value.period_start}
             onChange={(e) =>
               onChange({ ...value, period_start: e.target.value })
             }
-            className="rounded-md border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           />
-        </label>
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm text-zinc-700">
-          <span className="font-medium">End date</span>
+        <div className="flex flex-col">
+          <label
+            htmlFor="period-end"
+            className="mb-1.5 font-sans text-sm font-medium text-ink"
+          >
+            End date
+          </label>
           <input
+            id="period-end"
             type="date"
             value={value.period_end}
             onChange={(e) =>
               onChange({ ...value, period_end: e.target.value })
             }
-            className="rounded-md border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
             aria-invalid={dateRangeInvalid}
           />
           {dateRangeInvalid && (
-            <span className="text-sm text-red-600" role="alert">
+            <span className="mt-1 font-sans text-xs text-danger" role="alert">
               End date must be after start date
             </span>
           )}
-        </label>
+        </div>
 
-        <div className="flex flex-col gap-1 text-sm text-zinc-700">
-          <div className="flex items-center gap-1">
-            <label htmlFor="rng-seed" className="font-medium">
+        <div className="flex flex-col">
+          <div className="mb-1.5 flex items-center gap-1">
+            <label
+              htmlFor="rng-seed"
+              className="font-sans text-sm font-medium text-ink"
+            >
               RNG Seed
             </label>
             <InfoTooltip description="Starting number for the random generator. Same seed + same parameters always produces identical output — change it to get a different random variation of the same behavior." />
@@ -73,14 +86,14 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
                 seed: Number.isNaN(parsed) ? 0 : parsed,
               });
             }}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-zinc-900"
+            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           />
         </div>
       </div>
 
-      <p className="text-sm text-zinc-500">
+      <p className="font-sans text-xs text-ink-muted">
         Same seed + same params = identical output every run
       </p>
-    </section>
+    </div>
   );
 }

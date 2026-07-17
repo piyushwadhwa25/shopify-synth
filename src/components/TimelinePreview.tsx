@@ -70,12 +70,14 @@ export function TimelinePreview({
   });
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-zinc-900">Timeline preview</h2>
+    <div className="space-y-4">
+      <h3 className="font-sans text-sm font-semibold text-ink">
+        Timeline preview
+      </h3>
 
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-700">
+      <div className="overflow-x-auto rounded-lg border border-line bg-white">
+        <table className="min-w-full text-left font-sans text-sm">
+          <thead className="border-b border-line bg-signal-soft text-ink">
             <tr>
               <th className="px-3 py-2 font-medium">Start</th>
               <th className="px-3 py-2 font-medium">End</th>
@@ -87,7 +89,7 @@ export function TimelinePreview({
               <th className="px-3 py-2 font-medium">New customer rate</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 text-zinc-900">
+          <tbody className="divide-y divide-line text-ink">
             {rows.map(({ segment, resolved, days }) => (
               <tr key={`${segment.start_date}-${segment.end_date}`}>
                 <td className="px-3 py-2 font-mono text-xs">
@@ -96,16 +98,20 @@ export function TimelinePreview({
                 <td className="px-3 py-2 font-mono text-xs">
                   {segment.end_date}
                 </td>
-                <td className="px-3 py-2">{days}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 font-mono text-sm">{days}</td>
+                <td className="px-3 py-2 font-mono text-sm">
                   {resolved.orders_per_day_mean.toFixed(1)}
                 </td>
-                <td className="px-3 py-2">{formatRate(resolved.cod_rate)}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 font-mono text-sm">
+                  {formatRate(resolved.cod_rate)}
+                </td>
+                <td className="px-3 py-2 font-mono text-sm">
                   {formatRate(resolved.discount_rate)}
                 </td>
-                <td className="px-3 py-2">₹{resolved.aov_mean.toFixed(0)}</td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 font-mono text-sm">
+                  ₹{resolved.aov_mean.toFixed(0)}
+                </td>
+                <td className="px-3 py-2 font-mono text-sm">
                   {formatRate(resolved.new_customer_rate)}
                 </td>
               </tr>
@@ -114,21 +120,19 @@ export function TimelinePreview({
         </table>
       </div>
 
-      <div className="space-y-1 text-sm text-zinc-600">
+      <div className="space-y-1 font-sans text-xs text-ink-muted">
         <p>
-          <span className="font-medium text-zinc-800">Total days in period:</span>{" "}
+          <span className="font-medium text-ink">Total days in period:</span>{" "}
           {dayMap.size}
         </p>
         <p>
-          <span className="font-medium text-zinc-800">
-            Estimated total orders:
-          </span>{" "}
+          <span className="font-medium text-ink">Estimated total orders:</span>{" "}
           {Math.round(estimatedOrders).toLocaleString()} (rough estimate)
         </p>
-        <p className="text-zinc-500">
+        <p>
           Actual output will vary due to RNG jitter and festival spikes
         </p>
       </div>
-    </section>
+    </div>
   );
 }

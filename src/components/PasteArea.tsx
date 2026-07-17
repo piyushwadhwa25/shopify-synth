@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PARAM_DESCRIPTIONS } from "../lib/content/paramDescriptions";
 import {
   parsePaste,
   type ParseResult,
@@ -12,6 +11,13 @@ import { ParseErrors } from "./ParseErrors";
 /** Full column header row for copy-to-clipboard and preset rows. */
 export const PASTE_HEADER =
   "start_date,end_date,orders_per_day_mean,orders_per_day_std,new_customer_rate,repeat_purchase_probability,cod_rate,cod_rto_rate,prepaid_refund_rate,discount_rate,discount_amount_mean,aov_mean,aov_std,weekend_multiplier,evening_concentration";
+
+/**
+ * Illustrative festival-spike paste: one override window only.
+ * Blank cells inherit from base parameters above.
+ */
+const EXAMPLE_TIMELINE = `${PASTE_HEADER}
+2025-10-15,2025-11-05,,,,,,,,0.35,,620,,,`;
 
 /** Props for {@link PasteArea}. */
 export interface PasteAreaProps {
@@ -33,7 +39,6 @@ export function PasteArea({
   const [raw, setRaw] = useState("");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [copyLabel, setCopyLabel] = useState("Copy header");
-  const [columnsOpen, setColumnsOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runParse = useCallback(
@@ -123,62 +128,53 @@ export function PasteArea({
       : null;
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-zinc-900">
-            Paste segment timeline
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-zinc-600">
-            One row per time window. Header row required. Columns: start_date,
-            end_date, then any params you want to override. Use a row with
-            start_date=global to set the generation period.
-          </p>
+    <div className="space-y-4">
+      <p className="mb-1 font-sans text-sm text-ink-muted">
+        Your parameters above describe an ordinary day. Timeline overrides
+        describe the days that aren&apos;t — a festival spike, a discount push, a
+        slow decline. Paste rows below to change specific parameters for
+        specific date windows. Anything you leave blank keeps using the
+        values you set above.
+      </p>
+      <p className="mb-6 font-sans text-sm text-ink-muted">
+        Leave this empty to generate the full period using only your
+        parameters above — this section is optional.
+      </p>
 
-          <div className="mt-3 max-w-2xl">
-            <button
-              type="button"
-              aria-expanded={columnsOpen}
-              onClick={() => setColumnsOpen((open) => !open)}
-              className="text-sm font-medium text-zinc-700 underline-offset-2 hover:underline"
-            >
-              What do these columns mean?
-            </button>
-            {columnsOpen && (
-              <ul className="mt-2 space-y-2 rounded-md border border-zinc-200 bg-white p-3 text-sm text-zinc-700">
-                <li>
-                  <span className="font-medium text-zinc-900">start_date</span>
-                  <span className="mt-0.5 block text-xs text-zinc-600">
-                    First day this override applies. Use &apos;global&apos; to
-                    apply for the entire generation period.
-                  </span>
-                </li>
-                <li>
-                  <span className="font-medium text-zinc-900">end_date</span>
-                  <span className="mt-0.5 block text-xs text-zinc-600">
-                    Last day this override applies (inclusive).
-                  </span>
-                </li>
-                {Object.entries(PARAM_DESCRIPTIONS).map(([key, meta]) => (
-                  <li key={key}>
-                    <span className="font-medium text-zinc-900">
-                      {meta.label}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-zinc-600">
-                      {meta.description}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      <div className="mb-6 rounded-lg border border-line bg-white p-4">
+        <div className="mb-3 font-mono text-xs text-ink-muted">
+          EXAMPLE — a 3-week festival spike
         </div>
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <span className="font-mono text-signal">discount_rate</span>
+          <span className="font-sans text-ink-muted">
+            0.12 → 0.35 for Oct 15–Nov 5, then back to 0.12
+          </span>
+          <span className="font-mono text-signal">aov_mean</span>
+          <span className="font-sans text-ink-muted">
+            849 → 620 for the same window
+          </span>
+          <span className="font-mono text-ink-muted">everything else</span>
+          <span className="font-sans text-ink-muted">
+            unchanged — still reads from your parameters above
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4">
         <button
           type="button"
           onClick={handleCopyHeader}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="font-sans text-sm text-signal underline transition-colors hover:text-ink"
         >
           {copyLabel}
+        </button>
+        <button
+          type="button"
+          onClick={() => setRaw(EXAMPLE_TIMELINE)}
+          className="font-sans text-sm text-signal underline hover:text-ink"
+        >
+          Load this example
         </button>
       </div>
 
@@ -187,7 +183,7 @@ export function PasteArea({
         onChange={(e) => setRaw(e.target.value)}
         onPaste={handlePaste}
         rows={8}
-        className="w-full min-h-[8rem] rounded-md border border-zinc-300 px-3 py-2 font-mono text-sm text-zinc-900"
+        className="min-h-32 w-full rounded-md border border-line p-3 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
         placeholder={PASTE_HEADER}
         spellCheck={false}
       />
@@ -196,7 +192,7 @@ export function PasteArea({
         <button
           type="button"
           onClick={handleParseClick}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="rounded-md bg-signal px-5 py-2.5 font-sans font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Parse
         </button>
@@ -207,12 +203,12 @@ export function PasteArea({
       )}
 
       {isValid && coverage && (
-        <p className="text-sm font-medium text-green-700" role="status">
+        <p className="font-sans text-sm font-medium text-success" role="status">
           {result.segments.length} segment
           {result.segments.length === 1 ? "" : "s"} parsed. Covering{" "}
           {coverage.start} to {coverage.end}.
         </p>
       )}
-    </section>
+    </div>
   );
 }

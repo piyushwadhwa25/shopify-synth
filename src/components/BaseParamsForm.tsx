@@ -44,22 +44,27 @@ function isDecimalScaleField(field: BaseParamField): boolean {
  */
 export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
   return (
-    <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-zinc-900">Base parameters</h2>
+    <div className="space-y-4">
+      <h3 className="font-sans text-sm font-semibold text-ink">
+        Base parameters
+      </h3>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {BASE_PARAM_FIELDS.map((field) => {
           const decimal = isDecimalScaleField(field);
           const meta = PARAM_DESCRIPTIONS[field];
           const inputId = `param-${field}`;
+          const showRateTrack = meta.range === "0 to 1";
+          const numericValue = value[field];
+          const clampedRate = Math.min(1, Math.max(0, numericValue));
 
           return (
-            <div
-              key={field}
-              className="flex flex-col gap-1 text-sm text-zinc-700"
-            >
-              <div className="flex items-center gap-1">
-                <label htmlFor={inputId} className="font-medium">
+            <div key={field} className="flex flex-col">
+              <div className="mb-1.5 flex items-center gap-1">
+                <label
+                  htmlFor={inputId}
+                  className="font-sans text-sm font-medium text-ink"
+                >
                   {meta.label}
                 </label>
                 <InfoTooltip
@@ -71,7 +76,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
                 id={inputId}
                 type="number"
                 step={decimal ? "0.01" : "1"}
-                value={value[field]}
+                value={numericValue}
                 onChange={(e) => {
                   const parsed = Number(e.target.value);
                   onChange({
@@ -79,12 +84,20 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
                     [field]: Number.isFinite(parsed) ? parsed : 0,
                   });
                 }}
-                className="rounded-md border border-zinc-300 px-3 py-2 text-zinc-900"
+                className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
               />
+              {showRateTrack && (
+                <div className="relative mt-1.5 h-1 rounded-full bg-line">
+                  <div
+                    className="absolute h-1 w-1.5 -translate-x-1/2 rounded-full bg-signal"
+                    style={{ left: `${clampedRate * 100}%` }}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

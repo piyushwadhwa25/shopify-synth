@@ -43,18 +43,18 @@ export function ScenarioPicker({
   onSelectId,
 }: ScenarioPickerProps) {
   return (
-    <section className="space-y-4">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-900">
+        <h3 className="font-sans text-sm font-semibold text-ink">
           Quick-fill (optional)
-        </h2>
-        <p className="mt-1 text-sm text-zinc-600">
+        </h3>
+        <p className="mt-1 font-sans text-xs text-ink-muted">
           Click a preset to fill the fields below. You can still edit any value
           after.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {SCENARIO_ORDER.map((scenarioId) => {
           const profile = PROFILES[scenarioId];
           const isSelected = selectedId === scenarioId;
@@ -68,19 +68,19 @@ export function ScenarioPicker({
                 onQuickFill(profile.params);
                 onSelectId(scenarioId);
               }}
-              className={`rounded-lg border p-4 text-left transition-colors ${
+              className={`cursor-pointer rounded-lg border p-4 text-left transition-colors ${
                 isSelected
-                  ? "border-blue-600 bg-blue-50 ring-2 ring-blue-600"
-                  : "border-zinc-300 bg-white hover:border-zinc-400 hover:bg-zinc-50"
+                  ? "border-signal bg-signal-soft"
+                  : "border-line hover:border-signal"
               }`}
             >
-              <span className="block text-sm font-semibold text-zinc-900">
+              <span className="block font-sans text-sm font-medium text-ink">
                 {description}
               </span>
             </button>
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

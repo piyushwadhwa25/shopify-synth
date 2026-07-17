@@ -82,52 +82,92 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-full bg-zinc-50">
-      <main className="mx-auto max-w-4xl px-6 py-10">
-        <header className="mb-10 border-b border-zinc-200 pb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-            shopify-synth
-          </h1>
-          <p className="mt-2 text-zinc-600">
-            Generate realistic Shopify store data for testing and evaluation
-          </p>
-        </header>
+    <div className="min-h-full bg-paper text-ink font-sans">
+      <main className="mx-auto max-w-2xl px-6 py-16 md:py-24">
+        <h1 className="mb-2 font-display text-4xl text-ink">shopify-synth</h1>
+        <p className="mb-16 font-sans text-ink-muted">
+          Generate realistic Shopify store data for testing and evaluation.
+        </p>
 
-        <div className="space-y-10">
+        <section>
+          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+            01 — GENERATION PERIOD
+          </div>
+          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+            Generation period
+          </h2>
           <GlobalPeriodForm
             value={globalPeriod}
             onChange={setGlobalPeriod}
           />
+        </section>
 
+        <hr className="my-12 border-line" />
+
+        <section>
+          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+            02 — PRODUCT CATALOG
+          </div>
+          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+            Product catalog
+          </h2>
           <CatalogUpload onCatalogParsed={handleCatalogParsed} />
+        </section>
 
-          <section className="space-y-8">
-            <h2 className="text-lg font-semibold text-zinc-900">Parameters</h2>
+        <hr className="my-12 border-line" />
 
+        <section>
+          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+            03 — PARAMETERS
+          </div>
+          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+            Parameters
+          </h2>
+          <div className="space-y-8">
             <ScenarioPicker
               selectedId={selectedPresetId}
               onSelectId={setSelectedPresetId}
               onQuickFill={handleQuickFill}
             />
-
             <BaseParamsForm
               value={baseParams ?? EMPTY_BASE_PARAMS}
               onChange={setBaseParams}
             />
-          </section>
+          </div>
+        </section>
 
+        <hr className="my-12 border-line" />
+
+        <section>
+          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+            04 — TIMELINE OVERRIDES
+          </div>
+          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+            Timeline overrides
+          </h2>
           <PasteArea
             globalPeriod={globalPeriod}
             onParsed={handleParsed}
           />
-
           {parseResult && (
-            <TimelinePreview
-              parseResult={parseResult}
-              baseParams={baseParams}
-            />
+            <div className="mt-8">
+              <TimelinePreview
+                parseResult={parseResult}
+                baseParams={baseParams}
+              />
+            </div>
           )}
+        </section>
 
+        <hr className="my-12 border-line" />
+
+        <section>
+          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+            05 — GENERATE
+          </div>
+          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+            Generate
+          </h2>
           <GenerateButton
             parseResult={parseResult}
             globalPeriod={globalPeriod}
@@ -136,13 +176,24 @@ export default function Home() {
             downloadLabel={selectedPresetId}
             onComplete={handleGenerateComplete}
           />
+        </section>
 
-          {lastOutput && lastInputParams && (
-            <ComparisonTable
-              rows={compareParams(lastOutput, lastInputParams)}
-            />
-          )}
-        </div>
+        {lastOutput && lastInputParams && (
+          <>
+            <hr className="my-12 border-line" />
+            <section>
+              <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                06 — RESULTS
+              </div>
+              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                Results
+              </h2>
+              <ComparisonTable
+                rows={compareParams(lastOutput, lastInputParams)}
+              />
+            </section>
+          </>
+        )}
       </main>
     </div>
   );

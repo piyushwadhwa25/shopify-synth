@@ -77,7 +77,7 @@ export function InfoTooltip({ description, range }: InfoTooltipProps) {
         aria-expanded={open}
         aria-controls={tooltipId}
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-signal-soft hover:text-ink"
       >
         <InfoCircleIcon />
       </button>
@@ -86,13 +86,15 @@ export function InfoTooltip({ description, range }: InfoTooltipProps) {
         <div
           id={tooltipId}
           role="tooltip"
-          className="absolute left-0 top-full z-20 mt-1 w-64 max-w-[260px] rounded-md border border-zinc-200 bg-white p-3 text-left shadow-md"
+          className="absolute left-0 top-full z-20 mt-1 w-64 max-w-[260px] rounded-md border border-line bg-white p-3 text-left shadow-sm"
         >
-          <p className="text-xs leading-relaxed text-zinc-700">
+          <p className="font-sans text-xs leading-relaxed text-ink">
             {description}
           </p>
           {range !== undefined && (
-            <p className="mt-1.5 text-xs text-zinc-500">Range: {range}</p>
+            <p className="mt-1.5 font-sans text-xs text-ink-muted">
+              Range: {range}
+            </p>
           )}
         </div>
       )}

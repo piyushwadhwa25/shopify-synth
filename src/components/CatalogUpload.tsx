@@ -82,26 +82,21 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
   };
 
   return (
-    <section className="space-y-3">
-      <div>
-        <div className="flex items-center gap-1">
-          <h2 className="text-lg font-semibold text-zinc-900">
-            Product catalog
-          </h2>
-          <InfoTooltip description="Must be a standard Shopify product export CSV (Products > Export, default template). Required columns: Handle, Title, Type, Option1 Value, Option2 Value, Variant SKU, Variant Price, Variant Inventory Qty. Rows are grouped by Handle — one row per variant is expected." />
-        </div>
-        <p className="mt-1 text-sm text-zinc-600">
+    <div className="space-y-3">
+      <div className="flex items-start gap-1">
+        <p className="font-sans text-xs text-ink-muted">
           Upload a Shopify product export CSV. Required — generated orders need
           real SKUs and product IDs to reference.
         </p>
-        <a
-          href="/sample-catalog.csv"
-          download
-          className="mt-2 inline-block text-sm text-blue-600 underline hover:text-blue-800"
-        >
-          Download sample CSV
-        </a>
+        <InfoTooltip description="Must be a standard Shopify product export CSV (Products > Export, default template). Required columns: Handle, Title, Type, Option1 Value, Option2 Value, Variant SKU, Variant Price, Variant Inventory Qty. Rows are grouped by Handle — one row per variant is expected." />
       </div>
+      <a
+        href="/sample-catalog.csv"
+        download
+        className="inline-block font-sans text-sm text-signal underline transition-colors hover:text-ink"
+      >
+        Download sample CSV
+      </a>
 
       <div className="flex flex-wrap items-center gap-3">
         <input
@@ -109,14 +104,14 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
           type="file"
           accept=".csv"
           onChange={handleFileChange}
-          className="block w-full max-w-md text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-200 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-800 hover:file:bg-zinc-300"
+          className="block w-full max-w-md font-sans text-sm text-ink file:mr-3 file:rounded-md file:border-0 file:bg-signal-soft file:px-3 file:py-1.5 file:font-medium file:text-signal hover:file:opacity-90"
         />
 
         {fileName !== null && (
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+            className="font-sans text-sm text-signal underline transition-colors hover:text-ink"
           >
             Clear
           </button>
@@ -124,7 +119,7 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
       </div>
 
       {productCount !== null && (
-        <p className="text-sm text-zinc-700">
+        <p className="font-sans text-xs text-ink-muted">
           {fileName ? `${fileName}: ` : ""}
           {productCount.toLocaleString()} products,{" "}
           {(variantCount ?? 0).toLocaleString()} variants
@@ -133,12 +128,12 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
       )}
 
       {warnings.length > 0 && (
-        <ul className="list-disc space-y-1 pl-5 text-sm text-amber-800">
+        <ul className="list-disc space-y-1 pl-5 font-sans text-xs text-amber">
           {warnings.map((warning) => (
             <li key={warning}>{warning}</li>
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 }

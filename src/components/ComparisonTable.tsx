@@ -57,7 +57,7 @@ function CheckIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-green-600"
+      className="text-success"
       aria-hidden="true"
     >
       <path d="M5 12l5 5L20 7" />
@@ -78,7 +78,7 @@ function AlertIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-amber-600"
+      className="text-amber"
       aria-hidden="true"
     >
       <path d="M12 9v4" />
@@ -94,21 +94,21 @@ function AlertIcon() {
  */
 export function ComparisonTable({ rows }: ComparisonTableProps) {
   return (
-    <section className="space-y-4">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-900">
+        <h3 className="font-sans text-sm font-semibold text-ink">
           Expected vs actual
-        </h2>
-        <p className="mt-1 text-sm text-zinc-600">
+        </h3>
+        <p className="mt-1 font-sans text-xs text-ink-muted">
           Compares your input parameters against what the generated dataset
           actually contains, using the real per-day values the generator used
           (not a re-simulation).
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 text-zinc-700">
+      <div className="overflow-x-auto rounded-lg border border-line bg-white">
+        <table className="min-w-full text-left font-sans text-sm">
+          <thead className="border-b border-line bg-signal-soft text-ink">
             <tr>
               <th className="px-3 py-2 font-medium">Param</th>
               <th className="px-3 py-2 font-medium">Expected</th>
@@ -117,7 +117,7 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
               <th className="px-3 py-2 font-medium">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100 text-zinc-900">
+          <tbody className="divide-y divide-line text-ink">
             {rows.map((row) => {
               const actualNaN = !Number.isFinite(row.actual);
               const meta =
@@ -137,7 +137,7 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
                       )}
                     </div>
                     {row.note && (
-                      <span className="mt-0.5 block text-xs text-zinc-500">
+                      <span className="mt-0.5 block font-sans text-xs text-ink-muted">
                         {row.note}
                       </span>
                     )}
@@ -151,10 +151,10 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
                   <td
                     className={`px-3 py-2 font-mono text-xs tabular-nums ${
                       actualNaN
-                        ? "text-zinc-400"
+                        ? "text-ink-muted"
                         : row.withinTolerance
-                          ? "text-zinc-500"
-                          : "text-red-600"
+                          ? "text-ink-muted"
+                          : "text-danger"
                     }`}
                   >
                     {actualNaN
@@ -163,14 +163,14 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
                   </td>
                   <td className="px-3 py-2">
                     {actualNaN ? (
-                      <span className="text-zinc-400">—</span>
+                      <span className="text-ink-muted">—</span>
                     ) : row.withinTolerance ? (
-                      <span className="inline-flex items-center gap-1 text-green-700">
+                      <span className="inline-flex items-center gap-1 text-success">
                         <CheckIcon />
                         <span className="sr-only">Within tolerance</span>
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-amber-700">
+                      <span className="inline-flex items-center gap-1 text-amber">
                         <AlertIcon />
                         <span className="sr-only">Outside tolerance</span>
                       </span>
@@ -182,6 +182,6 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
 }
