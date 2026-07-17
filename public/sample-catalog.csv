@@ -1,0 +1,14 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Published,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Variant SKU,Variant Grams,Variant Inventory Qty,Variant Inventory Policy,Variant Fulfillment Service,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Variant Barcode,Image Src,Status
+classic-cotton-tshirt,Classic Cotton T-Shirt,"<p>Everyday soft cotton tee, regular fit.</p>",Sample Co,Apparel,"apparel,tshirt,cotton",TRUE,Size,S,,,TSHIRT-BLK-S,180,120,deny,manual,599.00,799.00,TRUE,TRUE,,https://example.com/images/tshirt.jpg,active
+classic-cotton-tshirt,,,,,,,,M,,,TSHIRT-BLK-M,180,95,deny,manual,599.00,799.00,TRUE,TRUE,,,active
+classic-cotton-tshirt,,,,,,,,L,,,TSHIRT-BLK-L,180,80,deny,manual,599.00,799.00,TRUE,TRUE,,,active
+everyday-tote-bag,Everyday Tote Bag,<p>Durable canvas tote for daily use.</p>,Sample Co,Accessories,"bag,tote,accessories",TRUE,Title,Default Title,,,TOTE-001,220,150,deny,manual,449.00,599.00,TRUE,TRUE,,https://example.com/images/tote.jpg,active
+ceramic-coffee-mug,Ceramic Coffee Mug,"<p>350ml ceramic mug, dishwasher safe.</p>",Sample Co,Home,"home,mug,ceramic",TRUE,Color,White,,,MUG-WHT,310,200,deny,manual,349.00,,TRUE,TRUE,,https://example.com/images/mug.jpg,active
+ceramic-coffee-mug,,,,,,,,Black,,,MUG-BLK,310,180,deny,manual,349.00,,TRUE,TRUE,,,active
+vitamin-c-face-serum,Vitamin C Face Serum,<p>30ml brightening serum with vitamin C.</p>,Sample Co,Skincare,"skincare,serum,vitaminc",TRUE,Size,30ml,,,SERUM-30ML,60,60,deny,manual,899.00,1199.00,TRUE,TRUE,,https://example.com/images/serum.jpg,active
+bamboo-cutlery-set,Bamboo Cutlery Set,"<p>4-piece travel cutlery set with pouch.</p>",Sample Co,Home,"home,eco,cutlery",TRUE,Title,Default Title,,,CUTLERY-BAM,140,90,deny,manual,299.00,,TRUE,TRUE,,https://example.com/images/cutlery.jpg,active
+wireless-earbuds-case,Wireless Earbuds Case,<p>Protective silicone case for earbuds.</p>,Sample Co,Electronics Accessories,"electronics,case,earbuds",TRUE,Color,Black,,,CASE-BLK,40,130,deny,manual,249.00,,TRUE,TRUE,,https://example.com/images/case.jpg,active
+wireless-earbuds-case,,,,,,,,White,,,CASE-WHT,40,110,deny,manual,249.00,,TRUE,TRUE,,,active
+organic-cotton-scarf,Organic Cotton Scarf,<p>Lightweight scarf in organic cotton.</p>,Sample Co,Apparel,"apparel,scarf,organic",TRUE,Title,Default Title,,,SCARF-ORG,90,70,deny,manual,549.00,,TRUE,TRUE,,https://example.com/images/scarf.jpg,active
+stainless-steel-water-bottle,Stainless Steel Water Bottle,"<p>Insulated bottle, keeps cold 24h.</p>",Sample Co,Lifestyle,"bottle,steel,lifestyle",TRUE,Size,500ml,,,BOTTLE-500,320,140,deny,manual,599.00,,TRUE,TRUE,,https://example.com/images/bottle.jpg,active
+stainless-steel-water-bottle,,,,,,,,750ml,,,BOTTLE-750,410,100,deny,manual,699.00,,TRUE,TRUE,,,active

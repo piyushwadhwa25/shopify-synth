@@ -94,6 +94,13 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
           Upload a Shopify product export CSV. Required — generated orders need
           real SKUs and product IDs to reference.
         </p>
+        <a
+          href="/sample-catalog.csv"
+          download
+          className="mt-2 inline-block text-sm text-blue-600 underline hover:text-blue-800"
+        >
+          Download sample CSV
+        </a>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
