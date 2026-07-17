@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "shopify-synth",
+  title: "Shopify Synth",
   description: "Generate realistic Shopify store data for testing and evaluation",
 };
 

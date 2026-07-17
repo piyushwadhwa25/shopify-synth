@@ -84,10 +84,61 @@ export default function Home() {
   return (
     <div className="min-h-full bg-paper text-ink font-sans">
       <main className="mx-auto max-w-2xl px-6 py-16 md:py-24">
-        <h1 className="mb-2 font-display text-4xl text-ink">shopify-synth</h1>
-        <p className="mb-16 font-sans text-ink-muted">
-          Generate realistic Shopify store data for testing and evaluation.
+        <header className="mb-8 flex items-center justify-between py-6">
+          <span className="font-mono text-xs tracking-widest text-ink-muted">
+            SHOPIFY SYNTH
+          </span>
+          <a
+            href="https://github.com/piyushwadhwa25/shopify-synth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-sans text-sm text-ink-muted transition-colors hover:text-signal"
+          >
+            GitHub ↗
+          </a>
+        </header>
+
+        <h1 className="mb-4 font-display text-4xl">Shopify Synth</h1>
+        <p className="mb-10 max-w-xl font-sans leading-relaxed text-ink-muted">
+          Generates realistic, seed-reproducible Shopify store data — orders,
+          customers, and catalog activity — calibrated to real D2C behavior:
+          COD-heavy payment splits, return-to-origin risk, discount-driven
+          demand, and festival seasonality. Built for testing pipelines and
+          dashboards against data that behaves like a real store, not random
+          noise.
         </p>
+
+        <div className="mb-16 rounded-lg border border-line bg-white p-5">
+          <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
+            SAMPLE OUTPUT — ONE GENERATED ORDER
+          </div>
+          <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ink">
+{`{
+  "order_number": 4821,
+  "gateway": "cash_on_delivery",
+  "financial_status": "pending",
+  "total_price": "742.00",
+  "line_items": [
+    {
+      "title": "Hot Water Bottle with Soft Cover",
+      "variant_title": "Grey",
+      "sku": "BLM-032-03",
+      "quantity": 1,
+      "price": "742.00"
+    }
+  ],
+  "shipping_address": {
+    "city": "Ahmedabad",
+    "province": "Gujarat"
+  }
+}`}
+          </pre>
+          <p className="mt-3 font-sans text-xs text-ink-muted">
+            One order from a generated dataset. Full output includes orders,
+            customers, and catalog records — configure below to generate your
+            own.
+          </p>
+        </div>
 
         <section>
           <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
@@ -194,6 +245,18 @@ export default function Home() {
             </section>
           </>
         )}
+
+        <footer className="mt-24 flex items-center justify-between border-t border-line pt-8 font-sans text-xs text-ink-muted">
+          <span>MIT licensed</span>
+          <a
+            href="https://github.com/piyushwadhwa25/shopify-synth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors hover:text-signal"
+          >
+            View source on GitHub ↗
+          </a>
+        </footer>
       </main>
     </div>
   );
