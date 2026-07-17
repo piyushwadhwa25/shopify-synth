@@ -1,6 +1,8 @@
 "use client";
 
+import { PARAM_DESCRIPTIONS } from "../lib/content/paramDescriptions";
 import type { ComparisonRow } from "../lib/core/compareParams";
+import { InfoTooltip } from "./InfoTooltip";
 
 /** Props for {@link ComparisonTable}. */
 export interface ComparisonTableProps {
@@ -118,10 +120,22 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
           <tbody className="divide-y divide-zinc-100 text-zinc-900">
             {rows.map((row) => {
               const actualNaN = !Number.isFinite(row.actual);
+              const meta =
+                row.paramKey !== undefined
+                  ? PARAM_DESCRIPTIONS[row.paramKey]
+                  : undefined;
               return (
                 <tr key={row.param}>
                   <td className="px-3 py-2 align-top">
-                    <span className="font-medium">{row.param}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{row.param}</span>
+                      {meta && (
+                        <InfoTooltip
+                          description={meta.description}
+                          range={meta.range}
+                        />
+                      )}
+                    </div>
                     {row.note && (
                       <span className="mt-0.5 block text-xs text-zinc-500">
                         {row.note}

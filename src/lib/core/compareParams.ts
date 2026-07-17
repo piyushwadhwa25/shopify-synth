@@ -11,6 +11,8 @@ import type { SegmentParams } from "./segments";
 export interface ComparisonRow {
   /** Human label, e.g. `"COD rate"`. */
   param: string;
+  /** Raw SegmentParams / PARAM_DESCRIPTIONS key when applicable. */
+  paramKey?: string;
   expected: number;
   actual: number;
   /** `actual - expected`. */
@@ -67,7 +69,9 @@ export function compareParams(
     const actual =
       periodDates.length > 0 ? totalOrders / periodDates.length : NaN;
     rows.push(
-      makeRow("Orders per day mean", expected, actual, "count"),
+      makeRow("Orders per day mean", expected, actual, "count", {
+        paramKey: "orders_per_day_mean",
+      }),
     );
   }
 
@@ -77,6 +81,7 @@ export function compareParams(
     const actual = populationStdev(dailyCounts);
     rows.push(
       makeRow("Orders per day std", expected, actual, "count", {
+        paramKey: "orders_per_day_std",
         note: "approximate — includes trend-driven drift, not pure sampling variance",
       }),
     );
@@ -94,7 +99,11 @@ export function compareParams(
       (o) => o.customer.orders_count === 1,
     ).length;
     const actual = totalOrders > 0 ? newCount / totalOrders : NaN;
-    rows.push(makeRow("New customer rate", expected, actual, "rate"));
+    rows.push(
+      makeRow("New customer rate", expected, actual, "rate", {
+        paramKey: "new_customer_rate",
+      }),
+    );
   }
 
   // 6. repeat_purchase_probability
@@ -117,6 +126,7 @@ export function compareParams(
     }
     rows.push(
       makeRow("Repeat purchase probability", expected, actual, "rate", {
+        paramKey: "repeat_purchase_probability",
         note,
       }),
     );
@@ -134,7 +144,11 @@ export function compareParams(
       (o) => o.gateway === "cash_on_delivery",
     ).length;
     const actual = totalOrders > 0 ? codCount / totalOrders : NaN;
-    rows.push(makeRow("COD rate", expected, actual, "rate"));
+    rows.push(
+      makeRow("COD rate", expected, actual, "rate", {
+        paramKey: "cod_rate",
+      }),
+    );
   }
 
   // 8. cod_rto_rate
@@ -159,7 +173,12 @@ export function compareParams(
       ).length;
       actual = rtoCount / codOrders.length;
     }
-    rows.push(makeRow("COD RTO rate", expected, actual, "rate", { note }));
+    rows.push(
+      makeRow("COD RTO rate", expected, actual, "rate", {
+        paramKey: "cod_rto_rate",
+        note,
+      }),
+    );
   }
 
   // 9. prepaid_refund_rate
@@ -185,7 +204,10 @@ export function compareParams(
       actual = refunded / prepaidOrders.length;
     }
     rows.push(
-      makeRow("Prepaid refund rate", expected, actual, "rate", { note }),
+      makeRow("Prepaid refund rate", expected, actual, "rate", {
+        paramKey: "prepaid_refund_rate",
+        note,
+      }),
     );
   }
 
@@ -201,7 +223,11 @@ export function compareParams(
       (o) => parseFloat(o.total_discounts) > 0,
     ).length;
     const actual = totalOrders > 0 ? discounted / totalOrders : NaN;
-    rows.push(makeRow("Discount rate", expected, actual, "rate"));
+    rows.push(
+      makeRow("Discount rate", expected, actual, "rate", {
+        paramKey: "discount_rate",
+      }),
+    );
   }
 
   // 11. discount_amount_mean
@@ -227,6 +253,7 @@ export function compareParams(
     }
     rows.push(
       makeRow("Discount amount mean", expected, actual, "currency", {
+        paramKey: "discount_amount_mean",
         note,
       }),
     );
@@ -244,7 +271,11 @@ export function compareParams(
       totalOrders > 0
         ? mean(output.orders.map((o) => parseFloat(o.total_price)))
         : NaN;
-    rows.push(makeRow("AOV mean", expected, actual, "currency"));
+    rows.push(
+      makeRow("AOV mean", expected, actual, "currency", {
+        paramKey: "aov_mean",
+      }),
+    );
   }
 
   // 13. aov_std
@@ -257,7 +288,11 @@ export function compareParams(
     );
     const prices = output.orders.map((o) => parseFloat(o.total_price));
     const actual = prices.length > 0 ? populationStdev(prices) : NaN;
-    rows.push(makeRow("AOV std", expected, actual, "currency"));
+    rows.push(
+      makeRow("AOV std", expected, actual, "currency", {
+        paramKey: "aov_std",
+      }),
+    );
   }
 
   // 14. weekend_multiplier — flat Expected from input
@@ -290,7 +325,10 @@ export function compareParams(
       actual = avgWeekend / avgWeekday;
     }
     rows.push(
-      makeRow("Weekend multiplier", expected, actual, "count", { note }),
+      makeRow("Weekend multiplier", expected, actual, "count", {
+        paramKey: "weekend_multiplier",
+        note,
+      }),
     );
   }
 
@@ -302,7 +340,11 @@ export function compareParams(
       return hour >= 18 && hour < 23;
     }).length;
     const actual = totalOrders > 0 ? eveningCount / totalOrders : NaN;
-    rows.push(makeRow("Evening concentration", expected, actual, "rate"));
+    rows.push(
+      makeRow("Evening concentration", expected, actual, "rate", {
+        paramKey: "evening_concentration",
+      }),
+    );
   }
 
   return rows;
@@ -315,14 +357,14 @@ export function compareParams(
  * @param expected - Target / weighted expected value.
  * @param actual - Measured value from output.
  * @param unit - Unit used for tolerance rules.
- * @param extras - Optional note override.
+ * @param extras - Optional note and/or raw `paramKey`.
  */
 function makeRow(
   param: string,
   expected: number,
   actual: number,
   unit: ComparisonRow["unit"],
-  extras?: { note?: string },
+  extras?: { note?: string; paramKey?: string },
 ): ComparisonRow {
   const difference = actual - expected;
   return {
@@ -333,6 +375,7 @@ function makeRow(
     unit,
     withinTolerance: isWithinTolerance(expected, actual, difference, unit),
     ...(extras?.note !== undefined ? { note: extras.note } : {}),
+    ...(extras?.paramKey !== undefined ? { paramKey: extras.paramKey } : {}),
   };
 }
 

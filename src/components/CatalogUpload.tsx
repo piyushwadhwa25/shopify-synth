@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import type { CatalogProduct } from "../lib/core/generate";
 import { parseProductCSV } from "../lib/parser/product-csv";
+import { InfoTooltip } from "./InfoTooltip";
 
 /**
  * Props for {@link CatalogUpload}.
@@ -83,7 +84,12 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-lg font-semibold text-zinc-900">Product catalog</h2>
+        <div className="flex items-center gap-1">
+          <h2 className="text-lg font-semibold text-zinc-900">
+            Product catalog
+          </h2>
+          <InfoTooltip description="Must be a standard Shopify product export CSV (Products > Export, default template). Required columns: Handle, Title, Type, Option1 Value, Option2 Value, Variant SKU, Variant Price, Variant Inventory Qty. Rows are grouped by Handle — one row per variant is expected." />
+        </div>
         <p className="mt-1 text-sm text-zinc-600">
           Upload a Shopify product export CSV. Required — generated orders need
           real SKUs and product IDs to reference.

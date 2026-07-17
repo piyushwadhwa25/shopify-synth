@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PARAM_DESCRIPTIONS } from "../lib/content/paramDescriptions";
 import {
   parsePaste,
   type ParseResult,
@@ -32,6 +33,7 @@ export function PasteArea({
   const [raw, setRaw] = useState("");
   const [result, setResult] = useState<ParseResult | null>(null);
   const [copyLabel, setCopyLabel] = useState("Copy header");
+  const [columnsOpen, setColumnsOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runParse = useCallback(
@@ -132,6 +134,44 @@ export function PasteArea({
             end_date, then any params you want to override. Use a row with
             start_date=global to set the generation period.
           </p>
+
+          <div className="mt-3 max-w-2xl">
+            <button
+              type="button"
+              aria-expanded={columnsOpen}
+              onClick={() => setColumnsOpen((open) => !open)}
+              className="text-sm font-medium text-zinc-700 underline-offset-2 hover:underline"
+            >
+              What do these columns mean?
+            </button>
+            {columnsOpen && (
+              <ul className="mt-2 space-y-2 rounded-md border border-zinc-200 bg-white p-3 text-sm text-zinc-700">
+                <li>
+                  <span className="font-medium text-zinc-900">start_date</span>
+                  <span className="mt-0.5 block text-xs text-zinc-600">
+                    First day this override applies. Use &apos;global&apos; to
+                    apply for the entire generation period.
+                  </span>
+                </li>
+                <li>
+                  <span className="font-medium text-zinc-900">end_date</span>
+                  <span className="mt-0.5 block text-xs text-zinc-600">
+                    Last day this override applies (inclusive).
+                  </span>
+                </li>
+                {Object.entries(PARAM_DESCRIPTIONS).map(([key, meta]) => (
+                  <li key={key}>
+                    <span className="font-medium text-zinc-900">
+                      {meta.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-zinc-600">
+                      {meta.description}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
         <button
           type="button"

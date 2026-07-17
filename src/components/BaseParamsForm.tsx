@@ -1,5 +1,7 @@
 "use client";
 
+import { InfoTooltip } from "./InfoTooltip";
+import { PARAM_DESCRIPTIONS } from "../lib/content/paramDescriptions";
 import type { SegmentParams } from "../lib/core/segments";
 
 /** Props for {@link BaseParamsForm}. */
@@ -27,24 +29,6 @@ const BASE_PARAM_FIELDS = [
 
 type BaseParamField = (typeof BASE_PARAM_FIELDS)[number];
 
-const ACRONYMS = new Set(["cod", "rto", "aov"]);
-
-/** Humanizes a snake_case field name (e.g. `cod_rate` → `COD rate`). */
-function humanizeField(field: string): string {
-  return field
-    .split("_")
-    .map((part, index) => {
-      if (ACRONYMS.has(part)) {
-        return part.toUpperCase();
-      }
-      if (index === 0) {
-        return part.charAt(0).toUpperCase() + part.slice(1);
-      }
-      return part;
-    })
-    .join(" ");
-}
-
 /** True for fields that use a 0–1 scale and decimal step. */
 function isDecimalScaleField(field: BaseParamField): boolean {
   return (
@@ -52,11 +36,6 @@ function isDecimalScaleField(field: BaseParamField): boolean {
     field.endsWith("_probability") ||
     field === "evening_concentration"
   );
-}
-
-/** True when the field should show the "0 to 1" hint. */
-function showRateHint(field: BaseParamField): boolean {
-  return field.endsWith("_rate") || field.endsWith("_probability");
 }
 
 /**
@@ -71,20 +50,25 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {BASE_PARAM_FIELDS.map((field) => {
           const decimal = isDecimalScaleField(field);
+          const meta = PARAM_DESCRIPTIONS[field];
+          const inputId = `param-${field}`;
+
           return (
-            <label
+            <div
               key={field}
               className="flex flex-col gap-1 text-sm text-zinc-700"
             >
-              <span className="font-medium">
-                {humanizeField(field)}
-                {showRateHint(field) && (
-                  <span className="ml-1 font-normal text-zinc-500">
-                    (0 to 1)
-                  </span>
-                )}
-              </span>
+              <div className="flex items-center gap-1">
+                <label htmlFor={inputId} className="font-medium">
+                  {meta.label}
+                </label>
+                <InfoTooltip
+                  description={meta.description}
+                  range={meta.range}
+                />
+              </div>
               <input
+                id={inputId}
                 type="number"
                 step={decimal ? "0.01" : "1"}
                 value={value[field]}
@@ -97,7 +81,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
                 }}
                 className="rounded-md border border-zinc-300 px-3 py-2 text-zinc-900"
               />
-            </label>
+            </div>
           );
         })}
       </div>
