@@ -54,7 +54,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
         Base parameters
       </h3>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
         {BASE_PARAM_FIELDS.map((field) => {
           const decimal = isDecimalScaleField(field);
           const tenthStep = isTenthStepField(field);

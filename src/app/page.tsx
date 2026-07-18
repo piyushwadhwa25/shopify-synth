@@ -9,6 +9,7 @@ import { GenerateButton } from "../components/GenerateButton";
 import { GlobalPeriodForm } from "../components/GlobalPeriodForm";
 import { PasteArea } from "../components/PasteArea";
 import { ScenarioPicker } from "../components/ScenarioPicker";
+import { SectionNav } from "../components/SectionNav";
 import { TimelinePreview } from "../components/TimelinePreview";
 import { compareParams } from "../lib/core/compareParams";
 import type { CatalogProduct } from "../lib/core/generate";
@@ -91,37 +92,43 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-full bg-paper text-ink font-sans">
-      <main className="mx-auto max-w-2xl px-6 py-16 md:py-24">
-        <header className="mb-8 flex items-center justify-between py-6">
-          <span className="font-mono text-xs tracking-widest text-ink-muted">
-            SHOPIFY SYNTH
-          </span>
-          <a
-            href="https://github.com/piyushwadhwa25/shopify-synth"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-sans text-sm text-ink-muted transition-colors hover:text-signal"
-          >
-            GitHub ↗
-          </a>
-        </header>
+    <div className="min-h-full bg-paper font-sans text-ink">
+      <main className="mx-auto max-w-7xl px-6 py-16 md:py-24 lg:px-10">
+        <div className="lg:grid lg:grid-cols-[200px_1fr] lg:gap-16">
+          <nav className="sticky top-12 hidden self-start lg:block">
+            <SectionNav />
+          </nav>
 
-        <h1 className="mb-4 font-display text-4xl">Shopify Synth</h1>
-        <p className="mb-10 max-w-xl font-sans leading-relaxed text-ink-muted">
-          Generates realistic, seed-reproducible Shopify store data — orders,
-          customers, and catalog activity — calibrated to real D2C behavior:
-          COD-heavy payment splits, return-to-origin risk, discount-driven
-          demand, and festival seasonality. Built for testing pipelines and
-          dashboards against data that behaves like a real store, not random
-          noise.
-        </p>
+          <div className="max-w-4xl">
+            <header className="mb-8 flex items-center justify-between py-6">
+              <span className="font-mono text-xs tracking-widest text-ink-muted">
+                SHOPIFY SYNTH
+              </span>
+              <a
+                href="https://github.com/piyushwadhwa25/shopify-synth"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-sans text-sm text-ink-muted transition-colors hover:text-signal"
+              >
+                GitHub ↗
+              </a>
+            </header>
 
-        <div className="mb-16 rounded-lg border border-line bg-white p-5">
-          <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
-            SAMPLE OUTPUT — ONE GENERATED ORDER
-          </div>
-          <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ink">
+            <h1 className="mb-4 font-display text-4xl">Shopify Synth</h1>
+            <p className="mb-10 max-w-xl font-sans leading-relaxed text-ink-muted">
+              Generates realistic, seed-reproducible Shopify store data — orders,
+              customers, and catalog activity — calibrated to real D2C behavior:
+              COD-heavy payment splits, return-to-origin risk, discount-driven
+              demand, and festival seasonality. Built for testing pipelines and
+              dashboards against data that behaves like a real store, not random
+              noise.
+            </p>
+
+            <div className="mb-16 max-w-xl rounded-lg border border-line bg-white p-5">
+              <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
+                SAMPLE OUTPUT — ONE GENERATED ORDER
+              </div>
+              <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ink">
 {`{
   "order_number": 4821,
   "gateway": "cash_on_delivery",
@@ -141,178 +148,182 @@ export default function Home() {
     "province": "Gujarat"
   }
 }`}
-          </pre>
-          <p className="mt-3 font-sans text-xs text-ink-muted">
-            One order from a generated dataset. Full output includes orders,
-            customers, and catalog records — configure below to generate your
-            own.
-          </p>
-        </div>
-
-        <section>
-          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-            01 — GENERATION PERIOD
-          </div>
-          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-            Generation period
-          </h2>
-          <GlobalPeriodForm
-            value={globalPeriod}
-            onChange={setGlobalPeriod}
-          />
-        </section>
-
-        <hr className="my-12 border-line" />
-
-        <section>
-          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-            02 — PRODUCT CATALOG
-          </div>
-          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-            Product catalog
-          </h2>
-          <CatalogUpload onCatalogParsed={handleCatalogParsed} />
-        </section>
-
-        <hr className="my-12 border-line" />
-
-        <section>
-          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-            03 — PARAMETERS
-          </div>
-          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-            Parameters
-          </h2>
-          <div className="space-y-8">
-            <ScenarioPicker
-              selectedId={selectedPresetId}
-              onSelectId={setSelectedPresetId}
-              onQuickFill={handleQuickFill}
-            />
-            <BaseParamsForm
-              value={baseParams ?? EMPTY_BASE_PARAMS}
-              onChange={setBaseParams}
-            />
-            <AovPreview
-              catalog={catalog}
-              itemsPerOrderMean={
-                (baseParams ?? EMPTY_BASE_PARAMS).items_per_order_mean
-              }
-              multiUnitRate={(baseParams ?? EMPTY_BASE_PARAMS).multi_unit_rate}
-            />
-          </div>
-        </section>
-
-        <hr className="my-12 border-line" />
-
-        <section>
-          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-            04 — TIMELINE OVERRIDES
-          </div>
-          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-            Timeline overrides
-          </h2>
-          <PasteArea
-            globalPeriod={globalPeriod}
-            onParsed={handleParsed}
-          />
-          {parseResult && (
-            <div className="mt-8">
-              <TimelinePreview
-                parseResult={parseResult}
-                baseParams={baseParams}
-              />
+              </pre>
+              <p className="mt-3 font-sans text-xs text-ink-muted">
+                One order from a generated dataset. Full output includes orders,
+                customers, and catalog records — configure below to generate your
+                own.
+              </p>
             </div>
-          )}
-        </section>
 
-        <hr className="my-12 border-line" />
-
-        <section>
-          <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-            05 — GENERATE
-          </div>
-          <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-            Generate
-          </h2>
-          <GenerateButton
-            parseResult={parseResult}
-            globalPeriod={globalPeriod}
-            catalog={catalog}
-            baseParams={baseParams}
-            downloadLabel={selectedPresetId}
-            onComplete={handleGenerateComplete}
-          />
-        </section>
-
-        {lastOutput && lastInputParams && (
-          <div ref={resultsRef}>
-            <hr className="my-12 border-line" />
-            <section>
+            <section id="period" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                06 — RESULTS
+                01 — GENERATION PERIOD
               </div>
               <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
-                Results
+                Generation period
               </h2>
-              <div className="mb-6 flex flex-wrap items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const blob = new Blob(
-                      [JSON.stringify(lastOutput, null, 2)],
-                      { type: "application/json" },
-                    );
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `${selectedPresetId ?? lastOutput.store_id}-${lastOutput.period_start}-${lastOutput.period_end}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="font-sans text-sm text-signal underline hover:text-ink"
-                >
-                  Download as JSON
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const csv = toOrderExportCsv(lastOutput);
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `${lastOutput.store_id}-orders-export.csv`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                  className="font-sans text-sm text-signal underline hover:text-ink"
-                >
-                  Download as Shopify export CSV
-                </button>
-              </div>
-              <ComparisonTable
-                rows={compareParams(
-                  lastOutput,
-                  lastInputParams,
-                  catalog ?? [],
-                )}
+              <GlobalPeriodForm
+                value={globalPeriod}
+                onChange={setGlobalPeriod}
               />
             </section>
-          </div>
-        )}
 
-        <footer className="mt-24 flex items-center justify-between border-t border-line pt-8 font-sans text-xs text-ink-muted">
-          <span>MIT licensed</span>
-          <a
-            href="https://github.com/piyushwadhwa25/shopify-synth"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-colors hover:text-signal"
-          >
-            View source on GitHub ↗
-          </a>
-        </footer>
+            <hr className="my-12 border-line" />
+
+            <section id="catalog" className="scroll-mt-12">
+              <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                02 — PRODUCT CATALOG
+              </div>
+              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                Product catalog
+              </h2>
+              <CatalogUpload onCatalogParsed={handleCatalogParsed} />
+            </section>
+
+            <hr className="my-12 border-line" />
+
+            <section id="parameters" className="scroll-mt-12">
+              <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                03 — PARAMETERS
+              </div>
+              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                Parameters
+              </h2>
+              <div className="space-y-8">
+                <ScenarioPicker
+                  selectedId={selectedPresetId}
+                  onSelectId={setSelectedPresetId}
+                  onQuickFill={handleQuickFill}
+                />
+                <BaseParamsForm
+                  value={baseParams ?? EMPTY_BASE_PARAMS}
+                  onChange={setBaseParams}
+                />
+                <AovPreview
+                  catalog={catalog}
+                  itemsPerOrderMean={
+                    (baseParams ?? EMPTY_BASE_PARAMS).items_per_order_mean
+                  }
+                  multiUnitRate={
+                    (baseParams ?? EMPTY_BASE_PARAMS).multi_unit_rate
+                  }
+                />
+              </div>
+            </section>
+
+            <hr className="my-12 border-line" />
+
+            <section id="overrides" className="scroll-mt-12">
+              <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                04 — TIMELINE OVERRIDES
+              </div>
+              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                Timeline overrides
+              </h2>
+              <PasteArea
+                globalPeriod={globalPeriod}
+                onParsed={handleParsed}
+              />
+              {parseResult && (
+                <div className="mt-8">
+                  <TimelinePreview
+                    parseResult={parseResult}
+                    baseParams={baseParams}
+                  />
+                </div>
+              )}
+            </section>
+
+            <hr className="my-12 border-line" />
+
+            <section id="generate" className="scroll-mt-12">
+              <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                05 — GENERATE
+              </div>
+              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                Generate
+              </h2>
+              <GenerateButton
+                parseResult={parseResult}
+                globalPeriod={globalPeriod}
+                catalog={catalog}
+                baseParams={baseParams}
+                downloadLabel={selectedPresetId}
+                onComplete={handleGenerateComplete}
+              />
+            </section>
+
+            {lastOutput && lastInputParams && (
+              <div ref={resultsRef} id="results" className="scroll-mt-12">
+                <hr className="my-12 border-line" />
+                <section>
+                  <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
+                    06 — RESULTS
+                  </div>
+                  <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                    Results
+                  </h2>
+                  <div className="mb-6 flex flex-wrap items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob(
+                          [JSON.stringify(lastOutput, null, 2)],
+                          { type: "application/json" },
+                        );
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${selectedPresetId ?? lastOutput.store_id}-${lastOutput.period_start}-${lastOutput.period_end}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="font-sans text-sm text-signal underline hover:text-ink"
+                    >
+                      Download as JSON
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const csv = toOrderExportCsv(lastOutput);
+                        const blob = new Blob([csv], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${lastOutput.store_id}-orders-export.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="font-sans text-sm text-signal underline hover:text-ink"
+                    >
+                      Download as Shopify export CSV
+                    </button>
+                  </div>
+                  <ComparisonTable
+                    rows={compareParams(
+                      lastOutput,
+                      lastInputParams,
+                      catalog ?? [],
+                    )}
+                  />
+                </section>
+              </div>
+            )}
+
+            <footer className="mt-24 flex items-center justify-between border-t border-line pt-8 font-sans text-xs text-ink-muted">
+              <span>MIT licensed</span>
+              <a
+                href="https://github.com/piyushwadhwa25/shopify-synth"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-signal"
+              >
+                View source on GitHub ↗
+              </a>
+            </footer>
+          </div>
+        </div>
       </main>
     </div>
   );
