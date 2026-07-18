@@ -114,24 +114,9 @@ export default function Home() {
               </a>
             </header>
 
-            <h1 className="font-display text-5xl md:text-6xl">
+            <h1 className="mb-6 font-display text-5xl md:text-6xl">
               Shopify Synth
             </h1>
-            <svg
-              width="120"
-              height="12"
-              viewBox="0 0 120 12"
-              className="mb-6"
-              fill="none"
-            >
-              <path
-                d="M2 8 Q 20 2, 40 7 T 80 6 T 118 5"
-                stroke="var(--signal)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                opacity="0.6"
-              />
-            </svg>
             <p className="mb-10 max-w-xl font-sans leading-relaxed text-ink-muted">
               Generates realistic, seed-reproducible Shopify store data: orders,
               customers, and catalog records. Calibrated to real D2C behavior,
@@ -240,7 +225,7 @@ export default function Home() {
                 04 / TIMELINE OVERRIDES
               </div>
               <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
-                Timeline overrides
+                Timeline overrides (optional)
               </h2>
               <PasteArea
                 globalPeriod={globalPeriod}

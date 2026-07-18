@@ -15,33 +15,33 @@ export const PASTE_HEADER =
 /**
  * Illustrative paste with two independent override windows.
  * Blank cells inherit from base parameters above.
- * Row 1: discount_rate=0.35, items_per_order_mean=2.1 (Oct 15 to Nov 5).
- * Row 2: orders_per_day_mean=20 (Jan 5 to Jan 20).
+ * Row 1 (festival): orders=95, discount_rate=0.4, items=2.4, multi_unit=0.35.
+ * Row 2 (slowdown): orders=18, new_customer_rate=0.2.
  */
 const EXAMPLE_TIMELINE = `${PASTE_HEADER}
 ${[
   "2025-10-15",
   "2025-11-05",
+  "95",
   "",
   "",
   "",
   "",
   "",
   "",
+  "0.4",
   "",
+  "2.4",
   "0.35",
-  "",
-  "2.1",
-  "",
   "",
   "",
 ].join(",")}
 ${[
   "2026-01-05",
   "2026-01-20",
-  "20",
+  "18",
   "",
-  "",
+  "0.2",
   "",
   "",
   "",
@@ -180,34 +180,38 @@ export function PasteArea({
         parameters above. This section is optional.
       </p>
 
-      <div className="-rotate-[0.75deg] mb-6 rounded-xl border border-dashed border-line bg-signal-soft/40 p-4">
+      <div className="-rotate-[0.5deg] mb-6 rounded-xl border border-dashed border-line bg-signal-soft/40 p-4">
         <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
           EXAMPLE: TWO SEPARATE OVERRIDE WINDOWS
         </div>
+        <div className="mb-3 font-sans text-xs text-ink-muted">
+          Festival spike, Oct 15 to Nov 5. Four parameters move together:
+        </div>
         <div className="mb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <span className="font-mono text-signal">orders_per_day_mean</span>
+          <span className="font-sans text-ink-muted">35 to 95</span>
           <span className="font-mono text-signal">discount_rate</span>
-          <span className="font-sans text-ink-muted">
-            0.12 to 0.35 for Oct 15 to Nov 5, then back to 0.12
-          </span>
+          <span className="font-sans text-ink-muted">0.12 to 0.40</span>
           <span className="font-mono text-signal">items_per_order_mean</span>
-          <span className="font-sans text-ink-muted">
-            1.3 to 2.1 for Oct 15 to Nov 5, then back to 1.3
-          </span>
+          <span className="font-sans text-ink-muted">1.3 to 2.4</span>
+          <span className="font-mono text-signal">multi_unit_rate</span>
+          <span className="font-sans text-ink-muted">0.15 to 0.35</span>
         </div>
         <div className="mb-4 h-px bg-line" />
+        <div className="mb-3 font-sans text-xs text-ink-muted">
+          Post-festival slowdown, Jan 5 to Jan 20. Just two parameters this
+          time:
+        </div>
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
           <span className="font-mono text-signal">orders_per_day_mean</span>
-          <span className="font-sans text-ink-muted">
-            35 to 20 for Jan 5 to Jan 20, a separate post-festival slowdown
-          </span>
-          <span className="font-mono text-ink-muted">everything else</span>
-          <span className="font-sans text-ink-muted">
-            unchanged in both windows, still reads from your parameters above
-          </span>
+          <span className="font-sans text-ink-muted">35 to 18</span>
+          <span className="font-mono text-signal">new_customer_rate</span>
+          <span className="font-sans text-ink-muted">0.35 to 0.20</span>
         </div>
         <p className="mt-4 font-sans text-xs text-ink-muted">
-          These are two independent rows in one paste. Add a third, a tenth,
-          however many time windows this dataset needs.
+          Each row overrides only what you name. Everything else in that
+          window still reads from your parameters above. Add a third row, a
+          tenth, however many windows this dataset needs.
         </p>
       </div>
 
@@ -229,7 +233,7 @@ export function PasteArea({
       </div>
 
       <div>
-        <div className="rounded-t-sm bg-ink px-3 py-1.5 font-mono text-xs tracking-widest text-paper">
+        <div className="relative z-10 -mb-px ml-1 inline-block rounded-t-sm border border-b-0 border-line bg-paper px-2 py-1 font-mono text-[10px] tracking-widest text-ink-muted">
           OVERRIDES.CSV
         </div>
         <textarea
@@ -237,7 +241,7 @@ export function PasteArea({
           onChange={(e) => setRaw(e.target.value)}
           onPaste={handlePaste}
           rows={8}
-          className="min-h-32 w-full rounded-t-none rounded-b-sm border-2 border-t-0 border-ink/15 bg-[#F5F4EF] p-3 font-mono text-sm shadow-inner focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+          className="min-h-32 w-full rounded-sm border border-line bg-white p-3 font-mono text-sm focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           placeholder="Paste rows here, or click 'Load this example' above."
           spellCheck={false}
         />
