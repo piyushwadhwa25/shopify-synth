@@ -12,6 +12,7 @@ const RATE_COLUMNS = new Set([
   "cod_rto_rate",
   "prepaid_refund_rate",
   "discount_rate",
+  "multi_unit_rate",
   "evening_concentration",
 ]);
 
@@ -20,14 +21,18 @@ const NON_NEGATIVE_COLUMNS = new Set([
   "orders_per_day_mean",
   "orders_per_day_std",
   "discount_amount_mean",
-  "aov_mean",
-  "aov_std",
+]);
+
+/** Segment parameter columns with an inclusive range other than [0, 1]. */
+const RANGE_COLUMNS = new Map<string, { min: number; max: number }>([
+  ["items_per_order_mean", { min: 1, max: 3 }],
 ]);
 
 /** All segment parameter column names recognized in the paste header. */
 const PARAM_COLUMNS = new Set([
   ...RATE_COLUMNS,
   ...NON_NEGATIVE_COLUMNS,
+  ...RANGE_COLUMNS.keys(),
   "weekend_multiplier",
 ]);
 
@@ -232,6 +237,18 @@ function parseSegmentRow(
           rowIndex,
           column,
           `${column} must be >= 0, got ${value}`,
+        );
+        continue;
+      }
+    } else {
+      const range = RANGE_COLUMNS.get(column);
+      if (range && (value < range.min || value > range.max)) {
+        rowValid = false;
+        addError(
+          errors,
+          rowIndex,
+          column,
+          `${column} must be in [${range.min}, ${range.max}], got ${value}`,
         );
         continue;
       }

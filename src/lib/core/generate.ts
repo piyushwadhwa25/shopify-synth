@@ -94,8 +94,8 @@ interface TrendedDayParams {
   repeatPurchaseProbability: number;
   codRtoRate: number;
   discountAmountMean: number;
-  aovMean: number;
-  aovStd: number;
+  itemsPerOrderMean: number;
+  multiUnitRate: number;
 }
 
 const IST_OFFSET = "+05:30";
@@ -315,8 +315,8 @@ export function generate(input: GeneratorInput): GeneratorOutput {
       prepaid_refund_rate: dayRefundRate,
       discount_rate: dayDiscountRate,
       discount_amount_mean: trended.discountAmountMean,
-      aov_mean: trended.aovMean,
-      aov_std: trended.aovStd,
+      items_per_order_mean: trended.itemsPerOrderMean,
+      multi_unit_rate: trended.multiUnitRate,
     });
 
     for (const createdAt of timestamps) {
@@ -360,7 +360,6 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         inflatedCatalog,
         rng,
         nextLineItemId,
-        params,
         trended,
       );
       nextLineItemId += lineItems.length;
@@ -374,7 +373,7 @@ export function generate(input: GeneratorInput): GeneratorOutput {
           trended.discountAmountMean,
           trended.discountAmountMean * 0.3,
           0,
-          trended.aovMean * 0.5,
+          subtotal * 0.5,
         );
         discountAmount = Math.min(discountAmount, subtotal * 0.9);
       }
@@ -601,8 +600,24 @@ function buildTrendedDayParams(
       trend,
       rng,
     ),
-    aovMean: applyTrend(dayIndex, totalDays, params.aov_mean, trend, rng),
-    aovStd: applyTrend(dayIndex, totalDays, params.aov_std, trend, rng),
+    itemsPerOrderMean: applyTrendClamped(
+      dayIndex,
+      totalDays,
+      params.items_per_order_mean,
+      trend,
+      rng,
+      1,
+      3,
+    ),
+    multiUnitRate: applyTrendClamped(
+      dayIndex,
+      totalDays,
+      params.multi_unit_rate,
+      rateTrend,
+      rng,
+      0,
+      1,
+    ),
   };
 }
 
@@ -764,63 +779,42 @@ function buildCollections(
 }
 
 /**
- * Builds line items by working toward a per-order value target sampled
- * from aov_mean/aov_std, using quantity to close any gap that product
- * selection alone can't reach. Prioritizes hitting the target over
- * "realistic" product distribution — the same product may be picked
- * multiple times, and usage across the catalog will be uneven when the
- * target requires it. Refuses additions that would overshoot beyond
- * a fixed tolerance band around the target.
+ * Builds an order's line items from basket-size and multi-unit
+ * behavior params. Order value is not targeted directly — it emerges
+ * from catalog prices and these two behavioral params, the same way
+ * it does in a real store.
  */
 function buildLineItems(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
   startingLineItemId: number,
-  params: ResolvedParams,
   trended: TrendedDayParams,
 ): ShopifyLineItem[] {
   if (inflatedCatalog.length === 0) {
     return [];
   }
 
-  const target = nextNormal(
-    rng,
-    trended.aovMean,
-    trended.aovStd,
-    Math.max(50, trended.aovMean - 3 * trended.aovStd),
-    trended.aovMean + 3 * trended.aovStd,
-  );
-  const OVERSHOOT_TOLERANCE = 0.15;
+  const maxCount = Math.min(3, inflatedCatalog.length);
+  const mean = Math.min(maxCount, Math.max(1, trended.itemsPerOrderMean));
+  const lower = Math.floor(mean);
+  const upper = Math.min(maxCount, lower + 1);
+  const upperWeight = mean - lower;
+  const itemCount =
+    upper === lower || !nextBool(rng, upperWeight) ? lower : upper;
 
-  const countOptions = [1, 2, 3].filter((n) => n <= inflatedCatalog.length);
-  const countWeights = [0.6, 0.28, 0.12].slice(0, countOptions.length);
-  const desiredDistinct = pickWeighted(rng, countOptions, countWeights);
   const available = [...inflatedCatalog];
   const lineItems: ShopifyLineItem[] = [];
-  let remaining = target;
-  let index = 0;
-  const MAX_LINE_ITEMS = 6;
-  const MAX_QTY_PER_LINE = 8;
 
-  while (index < MAX_LINE_ITEMS) {
-    // Stop once we're already close to target — don't force more items
-    // just because a small amount is technically still "remaining."
-    if (lineItems.length > 0 && remaining < target * 0.05) {
-      break;
-    }
-
-    const pool =
-      lineItems.length < desiredDistinct && available.length > 0
-        ? available
-        : inflatedCatalog;
-    const weights = pool.map((entry) =>
+  for (let index = 0; index < itemCount && available.length > 0; index++) {
+    const weights = available.map((entry) =>
       entry.catalog.is_dead ? 0.001 : entry.catalog.revenue_share,
     );
-    const entry = pickWeighted(rng, pool, weights) as InflatedCatalogEntry;
-    const availIdx = available.indexOf(entry);
-    if (availIdx !== -1) {
-      available.splice(availIdx, 1);
-    }
+    const entry = pickWeighted(
+      rng,
+      available,
+      weights,
+    ) as InflatedCatalogEntry;
+    available.splice(available.indexOf(entry), 1);
 
     const variant = pickOne(rng, entry.product.variants);
     const priceMean = entry.catalog.price_mean;
@@ -831,25 +825,7 @@ function buildLineItems(
       priceMean * 0.5,
       priceMean * 1.5,
     );
-
-    // Refuse to force a new item whose single unit alone would blow past
-    // the target beyond tolerance — stop instead of overshooting.
-    if (
-      lineItems.length > 0 &&
-      unitPrice > remaining + target * OVERSHOOT_TOLERANCE
-    ) {
-      break;
-    }
-
-    let quantity = Math.max(1, Math.round(remaining / unitPrice));
-    quantity = Math.min(quantity, MAX_QTY_PER_LINE);
-    // Trim quantity down if this single line would overshoot beyond tolerance.
-    while (
-      quantity > 1 &&
-      unitPrice * quantity > target * (1 + OVERSHOOT_TOLERANCE)
-    ) {
-      quantity -= 1;
-    }
+    const quantity = nextBool(rng, trended.multiUnitRate) ? 2 : 1;
 
     lineItems.push({
       id: startingLineItemId + index,
@@ -863,9 +839,6 @@ function buildLineItems(
       price: formatMoney(unitPrice),
       total_discount: "0.00",
     });
-
-    remaining -= unitPrice * quantity;
-    index += 1;
   }
 
   return lineItems;

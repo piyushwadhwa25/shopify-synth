@@ -11,8 +11,8 @@ export interface SegmentParams {
   prepaid_refund_rate?: number;
   discount_rate?: number;
   discount_amount_mean?: number;
-  aov_mean?: number;
-  aov_std?: number;
+  items_per_order_mean?: number;
+  multi_unit_rate?: number;
   weekend_multiplier?: number;
   evening_concentration?: number;
   trend?: TrendConfig;
@@ -49,6 +49,7 @@ const RATE_FIELDS: (keyof SegmentParams)[] = [
   "cod_rto_rate",
   "prepaid_refund_rate",
   "discount_rate",
+  "multi_unit_rate",
   "evening_concentration",
 ];
 
@@ -56,9 +57,14 @@ const NON_NEGATIVE_FIELDS: (keyof SegmentParams)[] = [
   "orders_per_day_mean",
   "orders_per_day_std",
   "discount_amount_mean",
-  "aov_mean",
-  "aov_std",
 ];
+
+/** Fields with an inclusive numeric range other than [0, 1]. */
+const RANGE_FIELDS: {
+  field: keyof SegmentParams;
+  min: number;
+  max: number;
+}[] = [{ field: "items_per_order_mean", min: 1, max: 3 }];
 
 /** Returns true when `dateStr` is a valid `YYYY-MM-DD` ISO date. */
 function isValidISODate(dateStr: string): boolean {
@@ -110,6 +116,15 @@ export function collectParamErrors(
     const value = params[field];
     if (typeof value === "number" && value < 0) {
       errors.push(`${prefix}${field} must be >= 0, got ${value}`);
+    }
+  }
+
+  for (const { field, min, max } of RANGE_FIELDS) {
+    const value = params[field];
+    if (typeof value === "number" && (value < min || value > max)) {
+      errors.push(
+        `${prefix}${field} must be in [${min}, ${max}], got ${value}`,
+      );
     }
   }
 

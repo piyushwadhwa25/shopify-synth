@@ -139,8 +139,8 @@ export interface DayParamSnapshot {
   prepaid_refund_rate: number;
   discount_rate: number;
   discount_amount_mean: number;
-  aov_mean: number;
-  aov_std: number;
+  items_per_order_mean: number;
+  multi_unit_rate: number;
 }
 
 /**

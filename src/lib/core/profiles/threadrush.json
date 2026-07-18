@@ -11,8 +11,8 @@
     "prepaid_refund_rate": 0.04,
     "discount_rate": 0.45,
     "discount_amount_mean": 180,
-    "aov_mean": 549,
-    "aov_std": 180,
+    "items_per_order_mean": 1.8,
+    "multi_unit_rate": 0.35,
     "weekend_multiplier": 2.1,
     "evening_concentration": 0.65,
     "trend": {

@@ -50,8 +50,8 @@ const PARAM_NUMERIC_KEYS = [
   "prepaid_refund_rate",
   "discount_rate",
   "discount_amount_mean",
-  "aov_mean",
-  "aov_std",
+  "items_per_order_mean",
+  "multi_unit_rate",
   "weekend_multiplier",
   "evening_concentration",
 ] as const satisfies readonly (keyof SegmentParams)[];
@@ -162,8 +162,8 @@ function loadParamsFile(paramsPath: string): Required<SegmentParams> {
     prepaid_refund_rate: raw.prepaid_refund_rate as number,
     discount_rate: raw.discount_rate as number,
     discount_amount_mean: raw.discount_amount_mean as number,
-    aov_mean: raw.aov_mean as number,
-    aov_std: raw.aov_std as number,
+    items_per_order_mean: raw.items_per_order_mean as number,
+    multi_unit_rate: raw.multi_unit_rate as number,
     weekend_multiplier: raw.weekend_multiplier as number,
     evening_concentration: raw.evening_concentration as number,
     trend:
