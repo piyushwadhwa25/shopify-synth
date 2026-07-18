@@ -164,6 +164,10 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
                   <td className="px-3 py-2">
                     {actualNaN ? (
                       <span className="text-ink-muted">—</span>
+                    ) : row.informational ? (
+                      <span className="font-sans text-xs text-ink-muted">
+                        ref
+                      </span>
                     ) : row.withinTolerance ? (
                       <span className="inline-flex items-center gap-1 text-success">
                         <CheckIcon />

@@ -21,8 +21,8 @@ const BASE_PARAM_FIELDS = [
   "prepaid_refund_rate",
   "discount_rate",
   "discount_amount_mean",
-  "aov_mean",
-  "aov_std",
+  "items_per_order_mean",
+  "multi_unit_rate",
   "weekend_multiplier",
   "evening_concentration",
 ] as const satisfies readonly (keyof SegmentParams)[];
@@ -36,6 +36,11 @@ function isDecimalScaleField(field: BaseParamField): boolean {
     field.endsWith("_probability") ||
     field === "evening_concentration"
   );
+}
+
+/** Fields that use a tenth-step (e.g. basket size means). */
+function isTenthStepField(field: BaseParamField): boolean {
+  return field === "items_per_order_mean";
 }
 
 /**
@@ -52,6 +57,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         {BASE_PARAM_FIELDS.map((field) => {
           const decimal = isDecimalScaleField(field);
+          const tenthStep = isTenthStepField(field);
           const meta = PARAM_DESCRIPTIONS[field];
           const inputId = `param-${field}`;
           const showRateTrack = meta.range === "0 to 1";
@@ -75,7 +81,10 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
               <input
                 id={inputId}
                 type="number"
-                step={decimal ? "0.01" : "1"}
+                step={decimal ? "0.01" : tenthStep ? "0.1" : "1"}
+                {...(field === "items_per_order_mean"
+                  ? { min: 1, max: 3 }
+                  : {})}
                 value={numericValue}
                 onChange={(e) => {
                   const parsed = Number(e.target.value);

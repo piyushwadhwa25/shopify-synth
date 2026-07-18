@@ -64,15 +64,17 @@ export const PARAM_DESCRIPTIONS: Record<string, ParamDescription> = {
     description:
       "Average ₹ amount taken off when an order does get a discount. The actual discount is randomized around this and can never exceed 90% of that order's subtotal.",
   },
-  aov_mean: {
-    label: "AOV (mean)",
+  items_per_order_mean: {
+    label: "Items per order (mean)",
     description:
-      "Target average order value. Also acts as a soft ceiling — baskets that overshoot this get resampled, and individual line-item prices are capped near this value.",
+      "Average number of distinct products in a basket (1 to 3). Pure basket-size behavior -- independent of what those products cost. AOV emerges from this plus your catalog's prices, shown as an estimate below.",
+    range: "1 to 3",
   },
-  aov_std: {
-    label: "AOV (std)",
+  multi_unit_rate: {
+    label: "Multi-unit rate",
     description:
-      "How tightly order values cluster around AOV mean. A tighter value rejects baskets that stray further from the target; a wider value tolerates more variance before resampling.",
+      "Chance a given line item is bought as quantity 2 instead of 1. Independent of price -- this is about bundling/stocking-up behavior, not spend.",
+    range: "0 to 1",
   },
   weekend_multiplier: {
     label: "Weekend multiplier",

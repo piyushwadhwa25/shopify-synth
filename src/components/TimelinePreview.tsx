@@ -85,7 +85,7 @@ export function TimelinePreview({
               <th className="px-3 py-2 font-medium">Orders/day</th>
               <th className="px-3 py-2 font-medium">COD rate</th>
               <th className="px-3 py-2 font-medium">Discount rate</th>
-              <th className="px-3 py-2 font-medium">AOV mean</th>
+              <th className="px-3 py-2 font-medium">Items/order</th>
               <th className="px-3 py-2 font-medium">New customer rate</th>
             </tr>
           </thead>
@@ -109,7 +109,7 @@ export function TimelinePreview({
                   {formatRate(resolved.discount_rate)}
                 </td>
                 <td className="px-3 py-2 font-mono text-sm">
-                  ₹{resolved.aov_mean.toFixed(0)}
+                  {resolved.items_per_order_mean.toFixed(1)}
                 </td>
                 <td className="px-3 py-2 font-mono text-sm">
                   {formatRate(resolved.new_customer_rate)}

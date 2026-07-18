@@ -1,3 +1,5 @@
+import { estimateAov } from "./aovEstimate";
+import type { CatalogProduct } from "./generate";
 import type {
   DayParamSnapshot,
   GeneratorOutput,
@@ -21,6 +23,8 @@ export interface ComparisonRow {
   withinTolerance: boolean;
   /** Optional caveat (e.g. stdev approximation, missing instrumentation). */
   note?: string;
+  /** When true, status is reference-only (not a pass/fail target). */
+  informational?: boolean;
 }
 
 type DayParamNumericKey = Exclude<keyof DayParamSnapshot, "date">;
@@ -31,12 +35,14 @@ type DayParamNumericKey = Exclude<keyof DayParamSnapshot, "date">;
  *
  * @param output - Generated dataset (requires `dayParams` / `branchCounters`).
  * @param inputParams - Base params used for the run (weekend / evening Expected).
+ * @param catalog - Product catalog used for the derived-AOV estimate row.
  * @returns One row per comparable param, or a single diagnostic row if
  *   the dataset lacks Layer-1 instrumentation.
  */
 export function compareParams(
   output: GeneratorOutput,
   inputParams: Required<SegmentParams>,
+  catalog: CatalogProduct[],
 ): ComparisonRow[] {
   if (!output.dayParams || !output.branchCounters) {
     return [
@@ -263,38 +269,69 @@ export function compareParams(
     );
   }
 
-  // 12. aov_mean
+  // 12. items_per_order_mean
   {
     const expected = weightedDayAverage(
       dayParams,
       ordersByDate,
-      "aov_mean",
+      "items_per_order_mean",
       totalOrders,
     );
+    const actual =
+      totalOrders > 0
+        ? mean(output.orders.map((o) => o.line_items.length))
+        : NaN;
+    rows.push(
+      makeRow("Items per order mean", expected, actual, "count", {
+        paramKey: "items_per_order_mean",
+      }),
+    );
+  }
+
+  // 13. multi_unit_rate
+  {
+    const expected = weightedDayAverage(
+      dayParams,
+      ordersByDate,
+      "multi_unit_rate",
+      totalOrders,
+    );
+    const allLineItems = output.orders.flatMap((o) => o.line_items);
+    const actual =
+      allLineItems.length > 0
+        ? allLineItems.filter((li) => li.quantity >= 2).length /
+          allLineItems.length
+        : NaN;
+    rows.push(
+      makeRow("Multi-unit rate", expected, actual, "rate", {
+        paramKey: "multi_unit_rate",
+      }),
+    );
+  }
+
+  // 13b. AOV (derived) — informational, not a direct input target
+  {
+    const itemsMean = weightedDayAverage(
+      dayParams,
+      ordersByDate,
+      "items_per_order_mean",
+      totalOrders,
+    );
+    const multiRate = weightedDayAverage(
+      dayParams,
+      ordersByDate,
+      "multi_unit_rate",
+      totalOrders,
+    );
+    const expected = estimateAov(catalog, itemsMean, multiRate);
     const actual =
       totalOrders > 0
         ? mean(output.orders.map((o) => parseFloat(o.total_price)))
         : NaN;
     rows.push(
-      makeRow("AOV mean", expected, actual, "currency", {
-        paramKey: "aov_mean",
-      }),
-    );
-  }
-
-  // 13. aov_std
-  {
-    const expected = weightedDayAverage(
-      dayParams,
-      ordersByDate,
-      "aov_std",
-      totalOrders,
-    );
-    const prices = output.orders.map((o) => parseFloat(o.total_price));
-    const actual = prices.length > 0 ? populationStdev(prices) : NaN;
-    rows.push(
-      makeRow("AOV std", expected, actual, "currency", {
-        paramKey: "aov_std",
+      makeRow("AOV (derived)", expected, actual, "currency", {
+        note: "AOV is derived from your catalog and basket params, not a direct input -- shown for reference.",
+        informational: true,
       }),
     );
   }
@@ -368,7 +405,11 @@ function makeRow(
   expected: number,
   actual: number,
   unit: ComparisonRow["unit"],
-  extras?: { note?: string; paramKey?: string },
+  extras?: {
+    note?: string;
+    paramKey?: string;
+    informational?: boolean;
+  },
 ): ComparisonRow {
   const difference = actual - expected;
   return {
@@ -380,6 +421,9 @@ function makeRow(
     withinTolerance: isWithinTolerance(expected, actual, difference, unit),
     ...(extras?.note !== undefined ? { note: extras.note } : {}),
     ...(extras?.paramKey !== undefined ? { paramKey: extras.paramKey } : {}),
+    ...(extras?.informational !== undefined
+      ? { informational: extras.informational }
+      : {}),
   };
 }
 

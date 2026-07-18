@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { AovPreview } from "../components/AovPreview";
 import { BaseParamsForm } from "../components/BaseParamsForm";
 import { CatalogUpload } from "../components/CatalogUpload";
 import { ComparisonTable } from "../components/ComparisonTable";
@@ -30,8 +31,8 @@ const EMPTY_BASE_PARAMS: Required<SegmentParams> = {
   prepaid_refund_rate: 0,
   discount_rate: 0,
   discount_amount_mean: 0,
-  aov_mean: 0,
-  aov_std: 0,
+  items_per_order_mean: 1.5,
+  multi_unit_rate: 0.2,
   weekend_multiplier: 0,
   evening_concentration: 0,
   trend: {
@@ -192,6 +193,13 @@ export default function Home() {
               value={baseParams ?? EMPTY_BASE_PARAMS}
               onChange={setBaseParams}
             />
+            <AovPreview
+              catalog={catalog}
+              itemsPerOrderMean={
+                (baseParams ?? EMPTY_BASE_PARAMS).items_per_order_mean
+              }
+              multiUnitRate={(baseParams ?? EMPTY_BASE_PARAMS).multi_unit_rate}
+            />
           </div>
         </section>
 
@@ -284,7 +292,11 @@ export default function Home() {
                 </button>
               </div>
               <ComparisonTable
-                rows={compareParams(lastOutput, lastInputParams)}
+                rows={compareParams(
+                  lastOutput,
+                  lastInputParams,
+                  catalog ?? [],
+                )}
               />
             </section>
           </div>

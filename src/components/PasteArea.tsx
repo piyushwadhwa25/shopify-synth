@@ -10,14 +10,31 @@ import { ParseErrors } from "./ParseErrors";
 
 /** Full column header row for copy-to-clipboard and preset rows. */
 export const PASTE_HEADER =
-  "start_date,end_date,orders_per_day_mean,orders_per_day_std,new_customer_rate,repeat_purchase_probability,cod_rate,cod_rto_rate,prepaid_refund_rate,discount_rate,discount_amount_mean,aov_mean,aov_std,weekend_multiplier,evening_concentration";
+  "start_date,end_date,orders_per_day_mean,orders_per_day_std,new_customer_rate,repeat_purchase_probability,cod_rate,cod_rto_rate,prepaid_refund_rate,discount_rate,discount_amount_mean,items_per_order_mean,multi_unit_rate,weekend_multiplier,evening_concentration";
 
 /**
  * Illustrative festival-spike paste: one override window only.
  * Blank cells inherit from base parameters above.
+ * Columns: discount_rate=0.35, items_per_order_mean=2.1, multi_unit_rate=0.4.
  */
 const EXAMPLE_TIMELINE = `${PASTE_HEADER}
-2025-10-15,2025-11-05,,,,,,,,0.35,,620,,,`;
+${[
+  "2025-10-15",
+  "2025-11-05",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "0.35",
+  "",
+  "2.1",
+  "0.4",
+  "",
+  "",
+].join(",")}`;
 
 /** Props for {@link PasteArea}. */
 export interface PasteAreaProps {
@@ -150,9 +167,9 @@ export function PasteArea({
           <span className="font-sans text-ink-muted">
             0.12 → 0.35 for Oct 15–Nov 5, then back to 0.12
           </span>
-          <span className="font-mono text-signal">aov_mean</span>
+          <span className="font-mono text-signal">items_per_order_mean</span>
           <span className="font-sans text-ink-muted">
-            849 → 620 for the same window
+            1.3 → 2.1 for Oct 15–Nov 5, then back to 1.3
           </span>
           <span className="font-mono text-ink-muted">everything else</span>
           <span className="font-sans text-ink-muted">
