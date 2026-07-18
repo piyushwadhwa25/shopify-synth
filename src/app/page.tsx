@@ -124,36 +124,41 @@ export default function Home() {
               noise.
             </p>
 
-            <div className="mb-16 max-w-xl rounded-lg border border-line bg-white p-5">
-              <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
-                SAMPLE OUTPUT — ONE GENERATED ORDER
-              </div>
-              <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ink">
-{`{
-  "order_number": 4821,
-  "gateway": "cash_on_delivery",
-  "financial_status": "pending",
-  "total_price": "742.00",
-  "line_items": [
-    {
-      "title": "Hot Water Bottle with Soft Cover",
-      "variant_title": "Grey",
-      "sku": "BLM-032-03",
-      "quantity": 1,
-      "price": "742.00"
-    }
-  ],
-  "shipping_address": {
-    "city": "Ahmedabad",
-    "province": "Gujarat"
-  }
-}`}
-              </pre>
-              <p className="mt-3 font-sans text-xs text-ink-muted">
-                One order from a generated dataset. Full output includes orders,
-                customers, and catalog records — configure below to generate your
-                own.
-              </p>
+            <div className="mb-16 grid grid-cols-1 gap-6 rounded-lg border border-line bg-white p-6 sm:grid-cols-4">
+              {[
+                {
+                  n: "1",
+                  title: "Upload a catalog",
+                  body: "Bring your own product export CSV, or use the sample.",
+                },
+                {
+                  n: "2",
+                  title: "Set parameters",
+                  body: "Click a preset to quick-fill, or dial in your own values.",
+                },
+                {
+                  n: "3",
+                  title: "Add overrides",
+                  body: "Optional — layer in festival spikes or campaign windows.",
+                },
+                {
+                  n: "4",
+                  title: "Generate",
+                  body: "Download as JSON or a Shopify-shaped order export CSV.",
+                },
+              ].map((step) => (
+                <div key={step.n}>
+                  <div className="mb-2 font-mono text-xs text-signal">
+                    {step.n}
+                  </div>
+                  <div className="mb-1 font-sans text-sm font-semibold">
+                    {step.title}
+                  </div>
+                  <p className="font-sans text-xs leading-relaxed text-ink-muted">
+                    {step.body}
+                  </p>
+                </div>
+              ))}
             </div>
 
             <section id="period" className="scroll-mt-12">
@@ -300,6 +305,32 @@ export default function Home() {
                       Download as Shopify export CSV
                     </button>
                   </div>
+                  <details className="mt-4">
+                    <summary className="w-fit cursor-pointer font-sans text-sm text-signal hover:text-ink">
+                      What does a generated order look like?
+                    </summary>
+                    <pre className="mt-3 overflow-x-auto rounded-lg border border-line bg-white p-4 font-mono text-xs leading-relaxed text-ink">
+{`{
+  "order_number": 4821,
+  "gateway": "cash_on_delivery",
+  "financial_status": "pending",
+  "total_price": "742.00",
+  "line_items": [
+    {
+      "title": "Hot Water Bottle with Soft Cover",
+      "variant_title": "Grey",
+      "sku": "BLM-032-03",
+      "quantity": 1,
+      "price": "742.00"
+    }
+  ],
+  "shipping_address": {
+    "city": "Ahmedabad",
+    "province": "Gujarat"
+  }
+}`}
+                    </pre>
+                  </details>
                   <ComparisonTable
                     rows={compareParams(
                       lastOutput,
