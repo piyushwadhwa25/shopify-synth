@@ -50,6 +50,27 @@ export function getFestivalMultiplier(
 }
 
 /**
+ * Applies weekend and festival multipliers to a day's base order-volume mean.
+ *
+ * @param date - ISO date string for the day.
+ * @param baseMean - Trend-adjusted `orders_per_day_mean` before scaling.
+ * @param params - Resolved segment parameters (weekend multiplier).
+ * @param spikes - Festival spikes that may boost volume.
+ * @returns Rounded adjusted mean (integer); may be 0.
+ */
+export function computeAdjustedOrdersMean(
+  date: string,
+  baseMean: number,
+  params: ResolvedParams,
+  spikes: FestivalSpike[],
+): number {
+  const isWeekend = [0, 6].includes(new Date(date).getDay());
+  const weekendFactor = isWeekend ? params.weekend_multiplier : 1.0;
+  const festivalFactor = getFestivalMultiplier(date, spikes);
+  return Math.round(baseMean * weekendFactor * festivalFactor);
+}
+
+/**
  * Computes the order count for a single day after weekend and festival scaling,
  * then samples around the adjusted mean using the trend-adjusted daily std.
  *
@@ -69,11 +90,11 @@ export function getDayOrderCount(
   spikes: FestivalSpike[],
   rng: RNGState,
 ): number {
-  const isWeekend = [0, 6].includes(new Date(date).getDay());
-  const weekendFactor = isWeekend ? params.weekend_multiplier : 1.0;
-  const festivalFactor = getFestivalMultiplier(date, spikes);
-  const adjustedMean = Math.round(
-    baseMean * weekendFactor * festivalFactor,
+  const adjustedMean = computeAdjustedOrdersMean(
+    date,
+    baseMean,
+    params,
+    spikes,
   );
 
   if (adjustedMean <= 0) {

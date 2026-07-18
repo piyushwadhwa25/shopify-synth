@@ -22,6 +22,7 @@ import {
 } from "./segments";
 import {
   getDayOrderCount,
+  computeAdjustedOrdersMean,
   generateDayTimestamps,
   type FestivalSpike,
 } from "./timestamps";
@@ -300,7 +301,12 @@ export function generate(input: GeneratorInput): GeneratorOutput {
     // Record the live values actually used for this day (instrumentation only).
     dayParams.push({
       date,
-      orders_per_day_mean: trended.ordersPerDayMean,
+      orders_per_day_mean: computeAdjustedOrdersMean(
+        date,
+        trended.ordersPerDayMean,
+        params,
+        spikes,
+      ),
       orders_per_day_std: trended.ordersPerDayStd,
       new_customer_rate: trended.newCustomerRate,
       repeat_purchase_probability: trended.repeatPurchaseProbability,
@@ -350,41 +356,14 @@ export function generate(input: GeneratorInput): GeneratorOutput {
         rng,
       );
 
-      // AOV-driven basket/price logic uses the day's trended AOV, not the
-      // untrended base/segment value (keeps baskets aligned with discount caps).
-      const aovAdjustedParams: ResolvedParams = {
-        ...params,
-        aov_mean: trended.aovMean,
-        aov_std: trended.aovStd,
-      };
-
-      // Resample line items until subtotal is within tolerance of target AOV.
-      let lineItems = buildLineItems(
+      const lineItems = buildLineItems(
         inflatedCatalog,
         rng,
         nextLineItemId,
-        aovAdjustedParams,
+        params,
+        trended,
       );
       nextLineItemId += lineItems.length;
-
-      // aov_std controls how tightly baskets cluster around aov_mean — wide std tolerates more basket variance before resampling kicks in.
-      const tolerance = Math.min(
-        0.5,
-        Math.max(0.05, trended.aovStd / trended.aovMean),
-      );
-      const upperBound = trended.aovMean * (1 + tolerance);
-
-      let attempts = 0;
-      while (sumLineItems(lineItems) > upperBound && attempts < 5) {
-        lineItems = buildLineItems(
-          inflatedCatalog,
-          rng,
-          nextLineItemId,
-          aovAdjustedParams,
-        );
-        nextLineItemId += lineItems.length;
-        attempts += 1;
-      }
 
       const subtotal = sumLineItems(lineItems);
       let discountAmount = 0;
@@ -597,12 +576,14 @@ function buildTrendedDayParams(
       0,
       1,
     ),
-    repeatPurchaseProbability: applyTrend(
+    repeatPurchaseProbability: applyTrendClamped(
       dayIndex,
       totalDays,
       params.repeat_purchase_probability,
-      trend,
+      rateTrend,
       rng,
+      0,
+      1,
     ),
     codRtoRate: applyTrendClamped(
       dayIndex,
@@ -782,69 +763,72 @@ function buildCollections(
   return { shopifyCollections, collectionProducts };
 }
 
-/** Picks 1–3 catalog products (without replacement) weighted by revenue share. */
-function pickCatalogEntries(
-  inflatedCatalog: InflatedCatalogEntry[],
-  rng: RNGState,
-  params: ResolvedParams,
-): InflatedCatalogEntry[] {
-  const countOptions = [1, 2, 3].filter((n) => n <= inflatedCatalog.length);
-  const countWeights = [0.7, 0.22, 0.08].slice(0, countOptions.length);
-  const itemCount =
-    params.aov_mean > 2000
-      ? 1
-      : pickWeighted(rng, countOptions, countWeights);
-
-  const maxItems = Math.min(itemCount, inflatedCatalog.length);
-  const available = [...inflatedCatalog];
-  const selected: InflatedCatalogEntry[] = [];
-
-  for (let i = 0; i < maxItems && available.length > 0; i++) {
-    const weights = available.map((entry) =>
-      entry.catalog.is_dead ? 0.001 : entry.catalog.revenue_share,
-    );
-    const picked = pickWeighted(
-      rng,
-      available,
-      weights,
-    ) as InflatedCatalogEntry;
-    selected.push(picked);
-    available.splice(available.indexOf(picked), 1);
-  }
-
-  return selected;
-}
-
-/** Builds line items for one order from weighted catalog picks. */
+/**
+ * Builds line items by working toward a per-order value target sampled
+ * from aov_mean/aov_std, using quantity to close any gap that product
+ * selection alone can't reach. Prioritizes hitting the target over
+ * "realistic" product distribution — the same product may be picked
+ * multiple times, and usage across the catalog will be uneven when the
+ * target requires it.
+ */
 function buildLineItems(
   inflatedCatalog: InflatedCatalogEntry[],
   rng: RNGState,
   startingLineItemId: number,
   params: ResolvedParams,
+  trended: TrendedDayParams,
 ): ShopifyLineItem[] {
   if (inflatedCatalog.length === 0) {
     return [];
   }
 
-  const picks = pickCatalogEntries(inflatedCatalog, rng, params);
-  const maxUnitPrice = params.aov_mean * 0.9;
+  const target = nextNormal(
+    rng,
+    trended.aovMean,
+    trended.aovStd,
+    Math.max(50, trended.aovMean - 3 * trended.aovStd),
+    trended.aovMean + 3 * trended.aovStd,
+  );
 
-  return picks.map((entry, index) => {
+  const countOptions = [1, 2, 3].filter((n) => n <= inflatedCatalog.length);
+  const countWeights = [0.6, 0.28, 0.12].slice(0, countOptions.length);
+  const desiredDistinct = pickWeighted(rng, countOptions, countWeights);
+  const available = [...inflatedCatalog];
+  const lineItems: ShopifyLineItem[] = [];
+  let remaining = target;
+  let index = 0;
+  const MAX_LINE_ITEMS = 6;
+  const MAX_QTY_PER_LINE = 8;
+
+  while (remaining > target * 0.05 && index < MAX_LINE_ITEMS) {
+    const pool =
+      lineItems.length < desiredDistinct && available.length > 0
+        ? available
+        : inflatedCatalog;
+    const weights = pool.map((entry) =>
+      entry.catalog.is_dead ? 0.001 : entry.catalog.revenue_share,
+    );
+    const entry = pickWeighted(rng, pool, weights) as InflatedCatalogEntry;
+
+    const availIdx = available.indexOf(entry);
+    if (availIdx !== -1) {
+      available.splice(availIdx, 1);
+    }
+
     const variant = pickOne(rng, entry.product.variants);
-    const quantity = nextBool(rng, 0.15) ? 2 : 1;
     const priceMean = entry.catalog.price_mean;
-    let unitPrice = nextNormal(
+    const unitPrice = nextNormal(
       rng,
       priceMean,
       priceMean * 0.08,
       priceMean * 0.5,
       priceMean * 1.5,
     );
-    if (unitPrice > maxUnitPrice) {
-      unitPrice = maxUnitPrice;
-    }
 
-    return {
+    const idealQty = Math.max(1, Math.round(remaining / unitPrice));
+    const quantity = Math.min(idealQty, MAX_QTY_PER_LINE);
+
+    lineItems.push({
       id: startingLineItemId + index,
       product_id: entry.product.id,
       variant_id: variant.id,
@@ -855,8 +839,13 @@ function buildLineItems(
       quantity,
       price: formatMoney(unitPrice),
       total_discount: "0.00",
-    };
-  });
+    });
+
+    remaining -= unitPrice * quantity;
+    index += 1;
+  }
+
+  return lineItems;
 }
 
 /** Sums line item extended prices (price × quantity). */
