@@ -12,6 +12,7 @@ import { TimelinePreview } from "../components/TimelinePreview";
 import { compareParams } from "../lib/core/compareParams";
 import type { CatalogProduct } from "../lib/core/generate";
 import type { GeneratorOutput } from "../lib/core/schema";
+import { toOrderExportCsv } from "../lib/export/orderExportCsv";
 import type { ParseResult } from "../lib/parser/index";
 import type { GlobalPeriod, SegmentParams } from "../lib/core/segments";
 
@@ -239,6 +240,22 @@ export default function Home() {
               <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
                 Results
               </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  const csv = toOrderExportCsv(lastOutput);
+                  const blob = new Blob([csv], { type: "text/csv" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${lastOutput.store_id}-orders-export.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="font-sans text-sm text-signal underline hover:text-ink"
+              >
+                Download as Shopify export CSV
+              </button>
               <ComparisonTable
                 rows={compareParams(lastOutput, lastInputParams)}
               />
