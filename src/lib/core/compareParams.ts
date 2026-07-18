@@ -89,11 +89,15 @@ export function compareParams(
 
   // 5. new_customer_rate
   {
-    const expected = weightedDayAverage(
+    // Effective new-customer rate isn't new_customer_rate alone -- a customer that fails the repeat-purchase gate also becomes new. This mirrors the two-stage logic in generate.ts's customer assignment.
+    const expected = weightedDayValues(
       dayParams,
       ordersByDate,
-      "new_customer_rate",
       totalOrders,
+      (day) =>
+        day.new_customer_rate +
+        (1 - day.new_customer_rate) *
+          (1 - day.repeat_purchase_probability),
     );
     const newCount = output.orders.filter(
       (o) => o.customer.orders_count === 1,
@@ -403,6 +407,27 @@ function isWithinTolerance(
 }
 
 /**
+ * Order-count-weighted average of a per-day numeric value.
+ * Days with zero orders contribute weight 0 (target recorded, no skew).
+ */
+function weightedDayValues(
+  dayParams: DayParamSnapshot[],
+  ordersByDate: Map<string, ShopifyOrder[]>,
+  totalOrders: number,
+  valueOf: (day: DayParamSnapshot) => number,
+): number {
+  if (totalOrders <= 0 || dayParams.length === 0) {
+    return NaN;
+  }
+  let weightedSum = 0;
+  for (const day of dayParams) {
+    const weight = ordersByDate.get(day.date)?.length ?? 0;
+    weightedSum += valueOf(day) * weight;
+  }
+  return weightedSum / totalOrders;
+}
+
+/**
  * Order-count-weighted average of a dayParams field.
  * Days with zero orders contribute weight 0 (target recorded, no skew).
  */
@@ -412,15 +437,12 @@ function weightedDayAverage(
   field: DayParamNumericKey,
   totalOrders: number,
 ): number {
-  if (totalOrders <= 0 || dayParams.length === 0) {
-    return NaN;
-  }
-  let weightedSum = 0;
-  for (const day of dayParams) {
-    const weight = ordersByDate.get(day.date)?.length ?? 0;
-    weightedSum += day[field] * weight;
-  }
-  return weightedSum / totalOrders;
+  return weightedDayValues(
+    dayParams,
+    ordersByDate,
+    totalOrders,
+    (day) => day[field],
+  );
 }
 
 /** Groups orders by the `YYYY-MM-DD` prefix of `created_at`. */

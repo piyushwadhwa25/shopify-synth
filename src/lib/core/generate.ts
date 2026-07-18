@@ -769,7 +769,8 @@ function buildCollections(
  * selection alone can't reach. Prioritizes hitting the target over
  * "realistic" product distribution — the same product may be picked
  * multiple times, and usage across the catalog will be uneven when the
- * target requires it.
+ * target requires it. Refuses additions that would overshoot beyond
+ * a fixed tolerance band around the target.
  */
 function buildLineItems(
   inflatedCatalog: InflatedCatalogEntry[],
@@ -789,6 +790,7 @@ function buildLineItems(
     Math.max(50, trended.aovMean - 3 * trended.aovStd),
     trended.aovMean + 3 * trended.aovStd,
   );
+  const OVERSHOOT_TOLERANCE = 0.15;
 
   const countOptions = [1, 2, 3].filter((n) => n <= inflatedCatalog.length);
   const countWeights = [0.6, 0.28, 0.12].slice(0, countOptions.length);
@@ -800,7 +802,13 @@ function buildLineItems(
   const MAX_LINE_ITEMS = 6;
   const MAX_QTY_PER_LINE = 8;
 
-  while (remaining > target * 0.05 && index < MAX_LINE_ITEMS) {
+  while (index < MAX_LINE_ITEMS) {
+    // Stop once we're already close to target — don't force more items
+    // just because a small amount is technically still "remaining."
+    if (lineItems.length > 0 && remaining < target * 0.05) {
+      break;
+    }
+
     const pool =
       lineItems.length < desiredDistinct && available.length > 0
         ? available
@@ -809,7 +817,6 @@ function buildLineItems(
       entry.catalog.is_dead ? 0.001 : entry.catalog.revenue_share,
     );
     const entry = pickWeighted(rng, pool, weights) as InflatedCatalogEntry;
-
     const availIdx = available.indexOf(entry);
     if (availIdx !== -1) {
       available.splice(availIdx, 1);
@@ -825,8 +832,24 @@ function buildLineItems(
       priceMean * 1.5,
     );
 
-    const idealQty = Math.max(1, Math.round(remaining / unitPrice));
-    const quantity = Math.min(idealQty, MAX_QTY_PER_LINE);
+    // Refuse to force a new item whose single unit alone would blow past
+    // the target beyond tolerance — stop instead of overshooting.
+    if (
+      lineItems.length > 0 &&
+      unitPrice > remaining + target * OVERSHOOT_TOLERANCE
+    ) {
+      break;
+    }
+
+    let quantity = Math.max(1, Math.round(remaining / unitPrice));
+    quantity = Math.min(quantity, MAX_QTY_PER_LINE);
+    // Trim quantity down if this single line would overshoot beyond tolerance.
+    while (
+      quantity > 1 &&
+      unitPrice * quantity > target * (1 + OVERSHOOT_TOLERANCE)
+    ) {
+      quantity -= 1;
+    }
 
     lineItems.push({
       id: startingLineItemId + index,
