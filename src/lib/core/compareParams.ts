@@ -81,14 +81,26 @@ export function compareParams(
     );
   }
 
-  // 4. orders_per_day_std
+  // 4. orders_per_day_std — law of total variance (within-day noise + between-day means)
   {
-    const expected = mean(dayParams.map((d) => d.orders_per_day_std));
+    // dayParams.orders_per_day_mean is already weekend/festival-adjusted.
+    const withinDayVariance = weightedDayValues(
+      dayParams,
+      ordersByDate,
+      totalOrders,
+      (d) => d.orders_per_day_std ** 2,
+    );
+    const dayMeans = dayParams.map((d) => d.orders_per_day_mean);
+    const meanOfMeans = mean(dayMeans);
+    const betweenDayVariance = mean(
+      dayMeans.map((m) => (m - meanOfMeans) ** 2),
+    );
+    const expected = Math.sqrt(withinDayVariance + betweenDayVariance);
     const actual = populationStdev(dailyCounts);
     rows.push(
       makeRow("Orders per day std", expected, actual, "count", {
         paramKey: "orders_per_day_std",
-        note: "approximate — includes trend-driven drift, not pure sampling variance",
+        note: "Accounts for weekend and festival variance, not just day-to-day sampling noise",
       }),
     );
   }
