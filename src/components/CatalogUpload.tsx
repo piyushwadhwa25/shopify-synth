@@ -85,10 +85,10 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
     <div className="space-y-3">
       <div className="flex items-start gap-1">
         <p className="font-sans text-xs text-ink-muted">
-          Upload a Shopify product export CSV. Required — generated orders need
-          real SKUs and product IDs to reference.
+          Upload a Shopify product export CSV. This is required: generated
+          orders need real SKUs and product IDs to reference.
         </p>
-        <InfoTooltip description="Must be a standard Shopify product export CSV (Products > Export, default template). Required columns: Handle, Title, Type, Option1 Value, Option2 Value, Variant SKU, Variant Price, Variant Inventory Qty. Rows are grouped by Handle — one row per variant is expected." />
+        <InfoTooltip description="Must be a standard Shopify product export CSV (Products > Export, default template). Required columns: Handle, Title, Type, Option1 Value, Option2 Value, Variant SKU, Variant Price, Variant Inventory Qty. Rows are grouped by Handle, with one row per variant." />
       </div>
       <a
         href="/sample-catalog.csv"
@@ -104,7 +104,7 @@ export function CatalogUpload({ onCatalogParsed }: CatalogUploadProps) {
           type="file"
           accept=".csv"
           onChange={handleFileChange}
-          className="block w-full max-w-md font-sans text-sm text-ink file:mr-3 file:rounded-md file:border-0 file:bg-signal-soft file:px-3 file:py-1.5 file:font-medium file:text-signal hover:file:opacity-90"
+          className="block w-full max-w-md font-sans text-sm text-ink file:mr-3 file:rounded-sm file:border-0 file:bg-signal-soft file:px-3 file:py-1.5 file:font-medium file:text-signal hover:file:opacity-90"
         />
 
         {fileName !== null && (

@@ -36,7 +36,7 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
             onChange={(e) =>
               onChange({ ...value, period_start: e.target.value })
             }
-            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+            className="rounded-sm border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           />
         </div>
 
@@ -54,7 +54,7 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
             onChange={(e) =>
               onChange({ ...value, period_end: e.target.value })
             }
-            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+            className="rounded-sm border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
             aria-invalid={dateRangeInvalid}
           />
           {dateRangeInvalid && (
@@ -72,7 +72,7 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
             >
               RNG Seed
             </label>
-            <InfoTooltip description="Starting number for the random generator. Same seed + same parameters always produces identical output — change it to get a different random variation of the same behavior." />
+            <InfoTooltip description="Starting number for the random generator. The same seed with the same parameters always produces identical output. Change the seed to get a different random variation of the same behavior." />
           </div>
           <input
             id="rng-seed"
@@ -86,7 +86,7 @@ export function GlobalPeriodForm({ value, onChange }: GlobalPeriodFormProps) {
                 seed: Number.isNaN(parsed) ? 0 : parsed,
               });
             }}
-            className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+            className="rounded-sm border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
           />
         </div>
       </div>

@@ -13,9 +13,10 @@ export const PASTE_HEADER =
   "start_date,end_date,orders_per_day_mean,orders_per_day_std,new_customer_rate,repeat_purchase_probability,cod_rate,cod_rto_rate,prepaid_refund_rate,discount_rate,discount_amount_mean,items_per_order_mean,multi_unit_rate,weekend_multiplier,evening_concentration";
 
 /**
- * Illustrative festival-spike paste: one override window only.
+ * Illustrative paste with two independent override windows.
  * Blank cells inherit from base parameters above.
- * Columns: discount_rate=0.35, items_per_order_mean=2.1, multi_unit_rate=0.4.
+ * Row 1: discount_rate=0.35, items_per_order_mean=2.1 (Oct 15 to Nov 5).
+ * Row 2: orders_per_day_mean=20 (Jan 5 to Jan 20).
  */
 const EXAMPLE_TIMELINE = `${PASTE_HEADER}
 ${[
@@ -31,7 +32,24 @@ ${[
   "0.35",
   "",
   "2.1",
-  "0.4",
+  "",
+  "",
+  "",
+].join(",")}
+${[
+  "2026-01-05",
+  "2026-01-20",
+  "20",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
+  "",
   "",
   "",
 ].join(",")}`;
@@ -147,35 +165,50 @@ export function PasteArea({
   return (
     <div className="space-y-4">
       <p className="mb-1 font-sans text-sm text-ink-muted">
-        Your parameters above describe an ordinary day. Timeline overrides
-        describe the days that aren&apos;t — a festival spike, a discount push, a
-        slow decline. Paste rows below to change specific parameters for
-        specific date windows. Anything you leave blank keeps using the
-        values you set above.
+        Your parameters above describe an ordinary day. Some days aren&apos;t
+        ordinary: a festival spike, a discount push, a slow decline. Paste
+        one row per time window below to change specific parameters for
+        that window only.
+      </p>
+      <p className="mb-1 font-sans text-sm text-ink-muted">
+        You can add as many rows as you need, each covering a different date
+        range. Anything left blank in a row keeps reading from the
+        parameters above.
       </p>
       <p className="mb-6 font-sans text-sm text-ink-muted">
         Leave this empty to generate the full period using only your
-        parameters above — this section is optional.
+        parameters above. This section is optional.
       </p>
 
-      <div className="mb-6 rounded-lg border border-line bg-white p-4">
-        <div className="mb-3 font-mono text-xs text-ink-muted">
-          EXAMPLE — a 3-week festival spike
+      <div className="-rotate-[0.75deg] mb-6 rounded-xl border border-dashed border-line bg-signal-soft/40 p-4">
+        <div className="mb-3 font-mono text-xs tracking-widest text-ink-muted">
+          EXAMPLE: TWO SEPARATE OVERRIDE WINDOWS
         </div>
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+        <div className="mb-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
           <span className="font-mono text-signal">discount_rate</span>
           <span className="font-sans text-ink-muted">
-            0.12 → 0.35 for Oct 15–Nov 5, then back to 0.12
+            0.12 to 0.35 for Oct 15 to Nov 5, then back to 0.12
           </span>
           <span className="font-mono text-signal">items_per_order_mean</span>
           <span className="font-sans text-ink-muted">
-            1.3 → 2.1 for Oct 15–Nov 5, then back to 1.3
+            1.3 to 2.1 for Oct 15 to Nov 5, then back to 1.3
+          </span>
+        </div>
+        <div className="mb-4 h-px bg-line" />
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <span className="font-mono text-signal">orders_per_day_mean</span>
+          <span className="font-sans text-ink-muted">
+            35 to 20 for Jan 5 to Jan 20, a separate post-festival slowdown
           </span>
           <span className="font-mono text-ink-muted">everything else</span>
           <span className="font-sans text-ink-muted">
-            unchanged — still reads from your parameters above
+            unchanged in both windows, still reads from your parameters above
           </span>
         </div>
+        <p className="mt-4 font-sans text-xs text-ink-muted">
+          These are two independent rows in one paste. Add a third, a tenth,
+          however many time windows this dataset needs.
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
@@ -195,15 +228,20 @@ export function PasteArea({
         </button>
       </div>
 
-      <textarea
-        value={raw}
-        onChange={(e) => setRaw(e.target.value)}
-        onPaste={handlePaste}
-        rows={8}
-        className="min-h-32 w-full rounded-md border border-line p-3 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
-        placeholder={PASTE_HEADER}
-        spellCheck={false}
-      />
+      <div>
+        <div className="rounded-t-sm bg-ink px-3 py-1.5 font-mono text-xs tracking-widest text-paper">
+          OVERRIDES.CSV
+        </div>
+        <textarea
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+          onPaste={handlePaste}
+          rows={8}
+          className="min-h-32 w-full rounded-t-none rounded-b-sm border-2 border-t-0 border-ink/15 bg-[#F5F4EF] p-3 font-mono text-sm shadow-inner focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+          placeholder="Paste rows here, or click 'Load this example' above."
+          spellCheck={false}
+        />
+      </div>
 
       <div className="flex gap-3">
         <button

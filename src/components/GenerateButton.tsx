@@ -146,7 +146,7 @@ export function GenerateButton({
         type="button"
         disabled={isDisabled}
         onClick={handleGenerate}
-        className="rounded-md bg-signal px-5 py-2.5 font-sans font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-sm bg-signal px-5 py-2.5 font-sans font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? "Generating..." : "Generate dataset"}
       </button>

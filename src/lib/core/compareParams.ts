@@ -342,7 +342,7 @@ export function compareParams(
         : NaN;
     rows.push(
       makeRow("AOV (derived)", expected, actual, "currency", {
-        note: "AOV is derived from your catalog and basket params, not a direct input -- shown for reference.",
+        note: "AOV is derived from your catalog and basket params. It isn't a direct input, shown here for reference.",
         informational: true,
       }),
     );

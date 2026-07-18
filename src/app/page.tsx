@@ -114,14 +114,30 @@ export default function Home() {
               </a>
             </header>
 
-            <h1 className="mb-4 font-display text-4xl">Shopify Synth</h1>
+            <h1 className="font-display text-5xl md:text-6xl">
+              Shopify Synth
+            </h1>
+            <svg
+              width="120"
+              height="12"
+              viewBox="0 0 120 12"
+              className="mb-6"
+              fill="none"
+            >
+              <path
+                d="M2 8 Q 20 2, 40 7 T 80 6 T 118 5"
+                stroke="var(--signal)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                opacity="0.6"
+              />
+            </svg>
             <p className="mb-10 max-w-xl font-sans leading-relaxed text-ink-muted">
-              Generates realistic, seed-reproducible Shopify store data — orders,
-              customers, and catalog activity — calibrated to real D2C behavior:
-              COD-heavy payment splits, return-to-origin risk, discount-driven
-              demand, and festival seasonality. Built for testing pipelines and
-              dashboards against data that behaves like a real store, not random
-              noise.
+              Generates realistic, seed-reproducible Shopify store data: orders,
+              customers, and catalog records. Calibrated to real D2C behavior,
+              including COD-heavy payment splits, return-to-origin risk,
+              discount-driven demand, and festival seasonality. Built to test
+              pipelines and dashboards against data that behaves like a real store.
             </p>
 
             <div className="mb-16 grid grid-cols-1 gap-6 rounded-lg border border-line bg-white p-6 sm:grid-cols-4">
@@ -139,7 +155,7 @@ export default function Home() {
                 {
                   n: "3",
                   title: "Add overrides",
-                  body: "Optional — layer in festival spikes or campaign windows.",
+                  body: "Optional. Layer in festival spikes or campaign windows, or skip this step entirely.",
                 },
                 {
                   n: "4",
@@ -163,9 +179,9 @@ export default function Home() {
 
             <section id="period" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                01 — GENERATION PERIOD
+                01 / GENERATION PERIOD
               </div>
-              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+              <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                 Generation period
               </h2>
               <GlobalPeriodForm
@@ -178,9 +194,9 @@ export default function Home() {
 
             <section id="catalog" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                02 — PRODUCT CATALOG
+                02 / PRODUCT CATALOG
               </div>
-              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+              <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                 Product catalog
               </h2>
               <CatalogUpload onCatalogParsed={handleCatalogParsed} />
@@ -190,9 +206,9 @@ export default function Home() {
 
             <section id="parameters" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                03 — PARAMETERS
+                03 / PARAMETERS
               </div>
-              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+              <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                 Parameters
               </h2>
               <div className="space-y-8">
@@ -221,9 +237,9 @@ export default function Home() {
 
             <section id="overrides" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                04 — TIMELINE OVERRIDES
+                04 / TIMELINE OVERRIDES
               </div>
-              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+              <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                 Timeline overrides
               </h2>
               <PasteArea
@@ -244,9 +260,9 @@ export default function Home() {
 
             <section id="generate" className="scroll-mt-12">
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                05 — GENERATE
+                05 / GENERATE
               </div>
-              <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+              <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                 Generate
               </h2>
               <GenerateButton
@@ -264,9 +280,9 @@ export default function Home() {
                 <hr className="my-12 border-line" />
                 <section>
                   <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
-                    06 — RESULTS
+                    06 / RESULTS
                   </div>
-                  <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
+                  <h2 className="font-sans font-semibold text-2xl md:text-3xl text-ink mb-4">
                     Results
                   </h2>
                   <div className="mb-6 flex flex-wrap items-center gap-4">
@@ -309,7 +325,7 @@ export default function Home() {
                     <summary className="w-fit cursor-pointer font-sans text-sm text-signal hover:text-ink">
                       What does a generated order look like?
                     </summary>
-                    <pre className="mt-3 overflow-x-auto rounded-lg border border-line bg-white p-4 font-mono text-xs leading-relaxed text-ink">
+                    <pre className="mt-3 overflow-x-auto rounded-xl border border-line bg-white p-4 font-mono text-xs leading-relaxed text-ink">
 {`{
   "order_number": 4821,
   "gateway": "cash_on_delivery",

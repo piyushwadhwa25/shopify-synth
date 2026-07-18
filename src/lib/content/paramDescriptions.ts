@@ -35,7 +35,7 @@ export const PARAM_DESCRIPTIONS: Record<string, ParamDescription> = {
   repeat_purchase_probability: {
     label: "Repeat purchase probability",
     description:
-      "For an order that could go to a returning customer, the chance that customer actually returns. If this roll fails, the order goes to a new customer instead — a low value here pushes more orders toward new customers even when new_customer_rate is low.",
+      "For an order that could go to a returning customer, the chance that customer actually returns. If this roll fails, the order goes to a new customer instead. A low value here pushes more orders toward new customers even when new_customer_rate is low.",
     range: "0–1",
   },
   cod_rate: {
@@ -47,7 +47,7 @@ export const PARAM_DESCRIPTIONS: Record<string, ParamDescription> = {
   cod_rto_rate: {
     label: "COD RTO rate",
     description:
-      "Of COD orders only, the share marked Return to Origin (RTO) — refused or undelivered on arrival. Does not apply to prepaid orders.",
+      "Of COD orders only, the share marked Return to Origin (RTO): refused or undelivered on arrival. Doesn't apply to prepaid orders.",
     range: "0–1",
   },
   prepaid_refund_rate: {
@@ -70,13 +70,13 @@ export const PARAM_DESCRIPTIONS: Record<string, ParamDescription> = {
   items_per_order_mean: {
     label: "Items per order (mean)",
     description:
-      "Average number of distinct products in a basket (1 to 3). Pure basket-size behavior -- independent of what those products cost. AOV emerges from this plus your catalog's prices, shown as an estimate below.",
-    range: "1–3",
+      "Average number of distinct products in a basket. This is pure basket-size behavior, independent of what those products cost. AOV comes out of this plus your catalog's prices, shown as an estimate below.",
+    range: "1–10",
   },
   multi_unit_rate: {
     label: "Multi-unit rate",
     description:
-      "Chance a given line item is bought as quantity 2 instead of 1. Independent of price -- this is about bundling/stocking-up behavior, not spend.",
+      "Chance a given line item is bought as quantity 2 instead of 1. This is about bundling or stocking-up behavior, not spend.",
     range: "0–1",
   },
   weekend_multiplier: {

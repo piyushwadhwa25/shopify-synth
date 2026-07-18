@@ -124,7 +124,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
                     type="number"
                     step={decimal ? "0.01" : tenthStep ? "0.1" : "1"}
                     {...(field === "items_per_order_mean"
-                      ? { min: 1, max: 3 }
+                      ? { min: 1, max: 10 }
                       : {})}
                     value={numericValue}
                     onChange={(e) => {
@@ -134,7 +134,7 @@ export function BaseParamsForm({ value, onChange }: BaseParamsFormProps) {
                         [field]: Number.isFinite(parsed) ? parsed : 0,
                       });
                     }}
-                    className="rounded-md border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
+                    className="rounded-sm border border-line bg-white px-3 py-2 font-mono text-sm transition-colors focus:border-signal focus:outline-none focus:ring-2 focus:ring-signal"
                   />
                 </div>
               );

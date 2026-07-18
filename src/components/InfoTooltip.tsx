@@ -86,7 +86,7 @@ export function InfoTooltip({ description, range }: InfoTooltipProps) {
         <div
           id={tooltipId}
           role="tooltip"
-          className="absolute left-0 top-full z-20 mt-1 w-64 max-w-[260px] rounded-md border border-line bg-white p-3 text-left shadow-sm"
+          className="absolute left-0 top-full z-20 mt-1 w-64 max-w-[260px] rounded-xl border border-line bg-white p-3 text-left shadow-sm"
         >
           <p className="font-sans text-xs leading-relaxed text-ink">
             {description}

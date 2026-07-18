@@ -64,7 +64,7 @@ const RANGE_FIELDS: {
   field: keyof SegmentParams;
   min: number;
   max: number;
-}[] = [{ field: "items_per_order_mean", min: 1, max: 3 }];
+}[] = [{ field: "items_per_order_mean", min: 1, max: 10 }];
 
 /** Returns true when `dateStr` is a valid `YYYY-MM-DD` ISO date. */
 function isValidISODate(dateStr: string): boolean {

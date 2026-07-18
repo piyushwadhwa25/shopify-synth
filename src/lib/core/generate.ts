@@ -607,7 +607,7 @@ function buildTrendedDayParams(
       trend,
       rng,
       1,
-      3,
+      10,
     ),
     multiUnitRate: applyTrendClamped(
       dayIndex,
@@ -794,7 +794,7 @@ function buildLineItems(
     return [];
   }
 
-  const maxCount = Math.min(3, inflatedCatalog.length);
+  const maxCount = Math.min(10, inflatedCatalog.length);
   const mean = Math.min(maxCount, Math.max(1, trended.itemsPerOrderMean));
   const lower = Math.floor(mean);
   const upper = Math.min(maxCount, lower + 1);

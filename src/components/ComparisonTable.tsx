@@ -106,7 +106,7 @@ export function ComparisonTable({ rows }: ComparisonTableProps) {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-line bg-white">
+      <div className="overflow-x-auto rounded-sm border border-line bg-white">
         <table className="min-w-full text-left font-sans text-sm">
           <thead className="border-b border-line bg-signal-soft text-ink">
             <tr>

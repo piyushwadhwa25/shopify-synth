@@ -25,7 +25,7 @@ const NON_NEGATIVE_COLUMNS = new Set([
 
 /** Segment parameter columns with an inclusive range other than [0, 1]. */
 const RANGE_COLUMNS = new Map<string, { min: number; max: number }>([
-  ["items_per_order_mean", { min: 1, max: 3 }],
+  ["items_per_order_mean", { min: 1, max: 10 }],
 ]);
 
 /** All segment parameter column names recognized in the paste header. */
