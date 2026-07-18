@@ -15,6 +15,7 @@ interface ProductDraft {
   handle: string;
   title: string;
   productType: string;
+  vendor: string;
   variants: { title: string; sku: string; price: number; inventory: number }[];
 }
 
@@ -47,6 +48,7 @@ export function parseProductCSV(
   const required = [
     "Handle",
     "Title",
+    "Vendor",
     "Type",
     "Option1 Value",
     "Option2 Value",
@@ -78,6 +80,7 @@ export function parseProductCSV(
         handle,
         title: "",
         productType: "",
+        vendor: "",
         variants: [],
       };
       drafts.set(handle, draft);
@@ -87,6 +90,11 @@ export function parseProductCSV(
     const title = cell(cells, col, "Title");
     if (title && !draft.title) {
       draft.title = title;
+    }
+
+    const vendor = cell(cells, col, "Vendor");
+    if (vendor && !draft.vendor) {
+      draft.vendor = vendor;
     }
 
     const type = cell(cells, col, "Type");
@@ -164,6 +172,7 @@ export function parseProductCSV(
       price_std: priceStd,
       revenue_share: 0,
       variants,
+      vendor: draft.vendor,
     };
 
     if (allZeroInventory) {

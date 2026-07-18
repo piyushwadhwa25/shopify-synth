@@ -62,6 +62,8 @@ export interface CatalogProduct {
   revenue_share: number;
   variants: CatalogVariant[];
   is_dead?: boolean;
+  /** From Shopify product CSV Vendor column when present. */
+  vendor?: string;
 }
 
 /** Collection definition mapping catalog store IDs to a Shopify collection. */
@@ -676,16 +678,23 @@ function createCustomer(
   const firstName = pickOne(rng, FIRST_NAMES);
   const lastName = pickOne(rng, LAST_NAMES);
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${id}@example.com`;
+  const defaultAddress = buildAddress(city, firstName, lastName, rng);
+  // Indian mobile: +91 + 10 digits starting with 6–9 (after address RNG so
+  // existing address fields keep their prior draw order within this call).
+  const phone = `+91${nextInt(rng, 6000000000, 9999999999)}`;
+  const buyerAcceptsMarketing = nextBool(rng, 0.6);
 
   return {
     id,
     email,
     first_name: firstName,
     last_name: lastName,
+    phone,
+    buyer_accepts_marketing: buyerAcceptsMarketing,
     orders_count: 0,
     total_spent: "0.00",
     created_at: createdAt,
-    default_address: buildAddress(city, firstName, lastName, rng),
+    default_address: defaultAddress,
   };
 }
 
@@ -842,6 +851,7 @@ function buildLineItems(
       title: entry.product.title,
       variant_title: variant.title,
       ...(variant.sku ? { sku: variant.sku } : {}),
+      ...(entry.catalog.vendor ? { vendor: entry.catalog.vendor } : {}),
       quantity,
       price: formatMoney(unitPrice),
       total_discount: "0.00",

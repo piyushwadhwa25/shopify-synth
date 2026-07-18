@@ -20,6 +20,8 @@ export type ShopifyCustomer = {
   email: string;
   first_name: string;
   last_name: string;
+  phone: string;
+  buyer_accepts_marketing: boolean;
   orders_count: number;
   total_spent: string;
   created_at: string;
@@ -72,6 +74,7 @@ export type ShopifyLineItem = {
   title: string;
   variant_title: string;
   sku?: string;
+  vendor?: string;
   quantity: number;
   price: string;
   total_discount: string;
