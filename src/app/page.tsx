@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { BaseParamsForm } from "../components/BaseParamsForm";
 import { CatalogUpload } from "../components/CatalogUpload";
 import { ComparisonTable } from "../components/ComparisonTable";
@@ -57,6 +57,7 @@ export default function Home() {
   const [lastInputParams, setLastInputParams] = useState<
     Required<SegmentParams> | null
   >(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleParsed = useCallback((result: ParseResult) => {
     setParseResult(result);
@@ -66,6 +67,12 @@ export default function Home() {
     (output: GeneratorOutput, usedParams: Required<SegmentParams>) => {
       setLastOutput(output);
       setLastInputParams(usedParams);
+      requestAnimationFrame(() => {
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
     },
     [],
   );
@@ -231,7 +238,7 @@ export default function Home() {
         </section>
 
         {lastOutput && lastInputParams && (
-          <>
+          <div ref={resultsRef}>
             <hr className="my-12 border-line" />
             <section>
               <div className="mb-2 font-mono text-xs tracking-widest text-ink-muted">
@@ -240,27 +247,47 @@ export default function Home() {
               <h2 className="mb-4 font-sans text-lg font-semibold text-ink">
                 Results
               </h2>
-              <button
-                type="button"
-                onClick={() => {
-                  const csv = toOrderExportCsv(lastOutput);
-                  const blob = new Blob([csv], { type: "text/csv" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `${lastOutput.store_id}-orders-export.csv`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }}
-                className="font-sans text-sm text-signal underline hover:text-ink"
-              >
-                Download as Shopify export CSV
-              </button>
+              <div className="mb-6 flex flex-wrap items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const blob = new Blob(
+                      [JSON.stringify(lastOutput, null, 2)],
+                      { type: "application/json" },
+                    );
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${selectedPresetId ?? lastOutput.store_id}-${lastOutput.period_start}-${lastOutput.period_end}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="font-sans text-sm text-signal underline hover:text-ink"
+                >
+                  Download as JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const csv = toOrderExportCsv(lastOutput);
+                    const blob = new Blob([csv], { type: "text/csv" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${lastOutput.store_id}-orders-export.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="font-sans text-sm text-signal underline hover:text-ink"
+                >
+                  Download as Shopify export CSV
+                </button>
+              </div>
               <ComparisonTable
                 rows={compareParams(lastOutput, lastInputParams)}
               />
             </section>
-          </>
+          </div>
         )}
 
         <footer className="mt-24 flex items-center justify-between border-t border-line pt-8 font-sans text-xs text-ink-muted">

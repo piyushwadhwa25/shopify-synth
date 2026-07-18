@@ -54,19 +54,6 @@ export interface GenerateButtonProps {
   ) => void;
 }
 
-/** Triggers JSON download of the generated dataset. */
-function downloadOutput(output: GeneratorOutput, label: string): void {
-  const blob = new Blob([JSON.stringify(output, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${label}-${output.period_start}-${output.period_end}.json`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
 /** Builds disabled-state helper copy from whatever is still missing. */
 function buildDisabledHelper(options: {
   hasCatalog: boolean;
@@ -150,7 +137,6 @@ export function GenerateButton({
         `Generated ${output.orders.length.toLocaleString()} orders, ${output.customers.length.toLocaleString()} customers, ${output.products.length.toLocaleString()} products`,
       );
       onComplete(output, baseParams);
-      downloadOutput(output, downloadLabel ?? storeId);
     }, 0);
   };
 
