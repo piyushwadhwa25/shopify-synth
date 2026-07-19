@@ -343,8 +343,16 @@ export default function Home() {
               </div>
             )}
 
-            <footer className="mt-24 flex items-center justify-between border-t border-line pt-8 font-sans text-xs text-ink-muted">
+            <footer className="mt-24 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-8 font-sans text-xs text-ink-muted">
               <span>MIT licensed</span>
+              <a
+                href="https://www.piyushwadhwa.com/projects"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-colors hover:text-signal"
+              >
+                More projects at piyushwadhwa.com ↗
+              </a>
               <a
                 href="https://github.com/piyushwadhwa25/shopify-synth"
                 target="_blank"
