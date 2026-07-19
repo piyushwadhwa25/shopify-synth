@@ -52,6 +52,8 @@ flowchart LR
 
 Parameters describe an ordinary day. Overrides describe the days that aren't. The generator resolves both into a per-day target, builds baskets against your catalog's real prices, and records what it actually aimed for alongside what it produced. That's what makes the comparison table meaningful: it isn't measuring the generator against itself with nothing around to catch drift.
 
+Most of what's happening underneath is seeded random sampling and a hand-rolled trend model, plus a couple of statistics problems that turned into real bugs along the way. Wrote that up separately in [`docs/TECHNICAL-NOTES.md`](./docs/TECHNICAL-NOTES.md) if that's the kind of thing you're curious about.
+
 ---
 
 ## A few product decisions worth reading

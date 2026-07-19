@@ -39,3 +39,5 @@ Three rounds to get here, and I'm leaving all three in this file instead of writ
 Getting the fix above right meant generating a dataset, opening it, computing several averages by hand, and eyeballing whether the numbers looked right, every single round. That doesn't scale, and it's a bad experience for anyone else using this with their own catalog and parameters. They shouldn't have to do that math themselves just to trust the output.
 
 So the generator now records what it actually targeted, per day, while it runs, and a comparison table ships alongside every generated dataset: expected values from your inputs against the actual measured values from the output, computed from those recorded per-day targets rather than a separate re-simulation. This is the thing that caught the repeat-purchase-probability bug and the AOV variance blowup in the first place. Would not have found either one by staring at a JSON file.
+
+If you want the actual math behind some of this, the compound probability formula, the variance blowup, the trend model, that's written up separately in [`docs/TECHNICAL-NOTES.md`](./TECHNICAL-NOTES.md).
